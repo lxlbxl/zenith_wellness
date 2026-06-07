@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 40px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .header {
+            background-image: linear-gradient(to right, #f59e0b, #ef4444);
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .content {
+            padding: 40px;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .warning-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .button-renew {
+            background-image: linear-gradient(to right, #4f46e5, #9333ea);
+        }
+
+        .footer {
+            background-color: #f1f5f9;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⏰ Your Access Expires Soon</h1>
+        </div>
+        <div class="content">
+            <p>Hi {{ name }},</p>
+            <p>Your access to <strong>{{ cohort_name }}</strong> will expire in <strong>{{ days_remaining }} days</strong>.</p>
+
+            <div class="warning-box">
+                <p style="margin: 0;"><strong>Access Expires:</strong> {{ expires_at }}</p>
+            </div>
+
+            <p>Make sure to:</p>
+            <ul>
+                <li>Complete any remaining daily protocols</li>
+                <li>Download any resources you'd like to keep</li>
+                <li>Finish your current challenges</li>
+            </ul>
+
+            <p>Don't want your journey to end? Extend your access or join the next cohort!</p>
+
+            <p style="text-align: center;">
+                <a href="{{ dashboard_link }}" class="button">Go to Dashboard</a>
+                <a href="{{ renew_link }}" class="button button-renew">Renew Access</a>
+            </p>
+        </div>
+        <div class="footer">
+            &copy; {{ year }} Zenith Wellness. All rights reserved.
+        </div>
+    </div>
+</body>
+
+</html>

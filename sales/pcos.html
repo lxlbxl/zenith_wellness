@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenith Hormone Health - Reclaim Your Rhythm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        rose: { 50: '#fff1f2', 100: '#ffe4e6', 500: '#f43f5e', 900: '#881337' },
+                        stone: { 50: '#fafaf9', 900: '#1c1917' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-rose-50/50 font-sans text-stone-900">
+
+    <nav class="py-6 container mx-auto px-6 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-rose-200 text-rose-500 rounded-full flex items-center justify-center">
+                <i class="fa-solid fa-heart-pulse"></i>
+            </div>
+            <span class="font-serif font-bold text-xl tracking-wide text-stone-800">Zenith<span
+                    class="text-rose-400">Care</span></span>
+        </div>
+        <div class="hidden md:flex gap-6 text-sm font-medium text-stone-500">
+            <span>Success Stories</span>
+            <!-- Social Proof -->
+            <section class="py-20 bg-slate-50">
+                <div class="container mx-auto px-4 max-w-4xl" data-component="testimonials">
+                    <div class="text-center mb-12">
+                        <h2 class="text-3xl font-serif text-slate-900 mb-4">What Our Members Say</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results -->
+            <section class="py-20 bg-white">
+                <div class="container mx-auto px-4 max-w-5xl" data-component="results">
+                    <div class="text-center mb-12">
+                        <h2 class="text-3xl font-serif text-slate-900 mb-4">Real Transformations</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Guarantee Section -->
+            <span>The Science</span>
+            <span>Our Doctors</span>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-6 py-12 md:py-20 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+        <div class="space-y-8">
+            <div
+                class="inline-block px-4 py-1.5 bg-white border border-rose-100 rounded-full text-rose-500 text-xs font-bold uppercase tracking-widest shadow-sm">
+                New: The 21-Day Hormonal Reset
+            </div>
+            <h1 class="font-serif text-5xl md:text-6xl leading-tight text-stone-900">
+                You aren't "lazy". <br />
+                <span class="italic text-rose-500">You are inflamed.</span>
+            </h1>
+            <p class="text-lg text-stone-500 leading-relaxed max-w-md">
+                Traditional diet advice fails women with PCOS and Endometriosis because it ignores your biology.
+                We don't count calories—we count chemicals, stress signals, and cycle phases.
+            </p>
+
+            <div class="space-y-4 border-l-2 border-rose-200 pl-6">
+                <div class="bg-white p-6 rounded-r-2xl shadow-sm">
+                    <p class="italic text-stone-600 mb-4">"I spent 5 years fighting my body. Zenith taught me how to
+                        workWITH it. My symptoms vanished in 3 cycles."</p>
+                    <div class="flex items-center gap-3">
+                        <img src="https://i.pravatar.cc/100?img=5" class="w-10 h-10 rounded-full grayscale" alt="Sarah">
+                        <div>
+                            <div class="font-bold text-sm">Sarah J.</div>
+                            <div class="text-xs text-rose-400 font-bold">Reversed PCOS Symptoms</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-8 md:p-12 rounded-[3rem] shadow-xl border border-rose-100 relative">
+            <div class="text-center mb-8">
+                <h2 class="font-serif text-3xl text-stone-900 mb-2">Claim Your Care Plan</h2>
+                <p class="text-stone-400 text-sm">Join the 1,200 women healing together.</p>
+            </div>
+
+            <form id="regForm" class="space-y-4">
+                <div id="errorMsg" class="hidden p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
+                    <span id="errorText"></span>
+                </div>
+
+                <input type="text" id="name" required
+                    class="w-full bg-rose-50/30 border border-rose-100 rounded-xl px-4 py-3 focus:ring-2 focus:ring-rose-200 outline-none transition-all placeholder-stone-400"
+                    placeholder="Your Name" />
+                <input type="email" id="email" required
+                    class="w-full bg-rose-50/30 border border-rose-100 rounded-xl px-4 py-3 focus:ring-2 focus:ring-rose-200 outline-none transition-all placeholder-stone-400"
+                    placeholder="your@email.com" />
+                <input type="password" id="password" required
+                    class="w-full bg-rose-50/30 border border-rose-100 rounded-xl px-4 py-3 focus:ring-2 focus:ring-rose-200 outline-none transition-all placeholder-stone-400"
+                    placeholder="Password (min 8 chars)" />
+
+                <button type="submit" id="submitBtn"
+                    class="w-full bg-rose-400 text-white font-serif italic text-lg py-4 rounded-xl shadow-lg shadow-rose-200 hover:bg-rose-500 hover:-translate-y-0.5 transition-all">
+                    Begin My Healing Journey
+                </button>
+            </form>
+            <p class="text-center text-xs text-stone-300 mt-6">HIPAA Compliant Security • Cancel Anytime</p>
+        </div>
+    </main>
+
+    <section class="bg-white py-20">
+        <div class="container mx-auto px-6 max-w-5xl">
+            <h2 class="font-serif text-3xl text-center mb-16">The Zenith Protocol Difference</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="text-center space-y-4">
+                    <div
+                        class="w-16 h-16 mx-auto bg-rose-50 rounded-full flex items-center justify-center text-rose-400 text-2xl">
+                        <i class="fa-solid fa-carrot"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">Anti-Inflammatory Nutrition</h3>
+                    <p class="text-sm text-stone-500">Meal plans that remove triggers and soothe gut lining.</p>
+                </div>
+                <div class="text-center space-y-4">
+                    <div
+                        class="w-16 h-16 mx-auto bg-rose-50 rounded-full flex items-center justify-center text-rose-400 text-2xl">
+                        <i class="fa-solid fa-moon"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">Cortisol Management</h3>
+                    <p class="text-sm text-stone-500">Workouts that don't spike your stress hormones.</p>
+                </div>
+                <div class="text-center space-y-4">
+                    <div
+                        class="w-16 h-16 mx-auto bg-rose-50 rounded-full flex items-center justify-center text-rose-400 text-2xl">
+                        <i class="fa-solid fa-user-doctor"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">Cycle-Synced Coaching</h3>
+                    <p class="text-sm text-stone-500">Intelligent guidance that adapts to your follicular and luteal
+                        phases.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.getElementById('regForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const errBox = document.getElementById('errorMsg');
+            const errText = document.getElementById('errorText');
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            btn.innerText = 'Processing...';
+            btn.disabled = true;
+            errBox.classList.add('hidden');
+
+            try {
+                const regRes = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, persona: 'newbie' })
+                });
+
+                if (!regRes.ok) {
+                    const d = await regRes.json();
+                    throw new Error(d.message || 'Registration failed');
+                }
+
+                const loginRes = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!loginRes.ok) throw new Error('Auto-login failed.');
+
+                const data = await loginRes.json();
+                localStorage.setItem('auth_token', data.token);
+                localStorage.setItem('zenith_session', JSON.stringify(data.user));
+                window.location.href = '/index.html';
+
+            } catch (err) {
+                errBox.classList.remove('hidden');
+                errText.innerText = err.message;
+                btn.disabled = false;
+                btn.innerText = 'Begin My Healing Journey';
+            }
+        });
+    </script>
+    <script src="/js/conversion.js"></script>
+    <script>
+        // Initialize interactive elements
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof initCountdowns === 'function') initCountdowns();
+            if (typeof initSpots === 'function') initSpots();
+        });
+    </script>
+</body>
+
+</html>

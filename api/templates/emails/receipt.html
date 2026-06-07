@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 40px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .header {
+            background-color: #0f172a;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .amount {
+            font-size: 32px;
+            font-weight: 900;
+            color: #4f46e5;
+            margin: 20px 0;
+        }
+
+        .content {
+            padding: 40px;
+            color: #334155;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .details {
+            background-color: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .row:last-child {
+            margin-bottom: 0;
+        }
+
+        .label {
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .footer {
+            background-color: #f1f5f9;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Payment Receipt</h1>
+        </div>
+        <div class="content">
+            <p>Hi {{ name }},</p>
+            <p>Your payment was successful!</p>
+            <div class="amount">{{ amount }} {{ currency }}</div>
+            <div class="details">
+                <div class="row">
+                    <span class="label">Item</span>
+                    <span>{{ description }}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Date</span>
+                    <span>{{ date }}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Receipt #</span>
+                    <span style="font-family: monospace;">{{ receipt_id }}</span>
+                </div>
+            </div>
+            <p>You now have full access to the purchased content.</p>
+        </div>
+        <div class="footer">
+            &copy; {{ year }} Zenith Wellness. All rights reserved.
+        </div>
+    </div>
+</body>
+
+</html>

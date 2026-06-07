@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenith Squad - Join Cohort</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-slate-900 font-sans text-white">
+
+    <div class="container mx-auto px-6 py-8 flex justify-between items-center">
+        <div class="font-black text-2xl tracking-tighter italic">ZENITH SQUAD</div>
+        <div
+            class="px-4 py-1.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 rounded-full text-xs font-bold uppercase tracking-widest animate-pulse">
+            Cohort 24 Filling Now
+        </div>
+    </div>
+
+    <main class="container mx-auto px-6 py-12 md:py-20 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div class="space-y-8 order-2 lg:order-1">
+            <h1 class="text-5xl md:text-7xl font-black leading-none tracking-tighter uppercase">
+                You Don't Need<br />
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">A
+                    Diet.</span><br />
+                You Need<br />
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">A Team.</span>
+            </h1>
+            <p class="text-xl text-slate-400 max-w-md leading-relaxed">
+                Willpower is a finite resource. Structure is infinite. Join the Zenith Cohort and execute the 21-Day
+                Metabolic Reset with a squad that won't let you fail.
+            </p>
+
+            <div class="space-y-4 pt-4">
+                <!-- Features list -->
+                <div
+                    class="flex items-center gap-6 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-xl flex-shrink-0">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Live Cohort Lounge</h3>
+                        <p class="text-sm text-slate-400">Secure comms with high performers.</p>
+                    </div>
+                </div>
+
+                <div
+                    class="flex items-center gap-6 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-xl flex-shrink-0">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Global Leaderboards</h3>
+                        <p class="text-sm text-slate-400">Rank up as you log your progress.</p>
+                    </div>
+                </div>
+
+                <div
+                    class="flex items-center gap-6 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-xl flex-shrink-0">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Daily Mission Control</h3>
+                        <p class="text-sm text-slate-400">Execute the daily directives together.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration Card -->
+        <div
+            class="order-1 lg:order-2 bg-gradient-to-br from-indigo-900 to-slate-900 p-8 md:p-12 rounded-[3rem] border border-white/10 shadow-2xl relative overflow-hidden">
+            <div
+                class="absolute top-0 right-0 w-64 h-64 bg-yellow-500/20 rounded-full blur-[100px] pointer-events-none">
+            </div>
+
+            <div class="relative z-10">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-black uppercase tracking-tight mb-2">Claim Your Spot</h2>
+                    <p class="text-slate-400">This cohort closes in 48 hours.</p>
+                </div>
+
+                <form id="regForm" class="bg-white/5 p-6 rounded-3xl border border-white/5 backdrop-blur-sm space-y-4">
+                    <div id="errorMsg"
+                        class="hidden p-3 bg-red-500/20 text-red-200 text-sm rounded-xl border border-red-500/30 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-exclamation"></i> <span id="errorText"></span>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Full
+                            Name</label>
+                        <input type="text" id="name" required
+                            class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 font-medium focus:ring-4 focus:ring-indigo-500/40 focus:border-indigo-500 outline-none transition-all placeholder-slate-500"
+                            placeholder="e.g. Alex Chen" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Email
+                            Address</label>
+                        <input type="email" id="email" required
+                            class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 font-medium focus:ring-4 focus:ring-indigo-500/40 focus:border-indigo-500 outline-none transition-all placeholder-slate-500"
+                            placeholder="alex@example.com" />
+                    </div>
+                    <div>
+                        <label
+                            class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Password</label>
+                        <input type="password" id="password" required
+                            class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 font-medium focus:ring-4 focus:ring-indigo-500/40 focus:border-indigo-500 outline-none transition-all placeholder-slate-500"
+                            placeholder="Min. 8 characters" />
+                    </div>
+
+                    <button type="submit" id="submitBtn"
+                        class="w-full bg-indigo-600 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-xl shadow-indigo-900/50 hover:bg-indigo-500 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                        Join The Squad <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <div class="mt-8 flex items-center justify-center gap-4 opacity-50">
+                    <div class="flex -space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-slate-600 border-2 border-slate-900"></div>
+                        <div class="w-8 h-8 rounded-full bg-slate-500 border-2 border-slate-900"></div>
+                        <div class="w-8 h-8 rounded-full bg-slate-400 border-2 border-slate-900"></div>
+                        <div class="w-8 h-8 rounded-full bg-slate-300 border-2 border-slate-900"></div>
+                    </div>
+                    <span class="text-xs font-bold text-slate-400">12 Friends joined today</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('regForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const errBox = document.getElementById('errorMsg');
+            const errText = document.getElementById('errorText');
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+            btn.disabled = true;
+            errBox.classList.add('hidden');
+
+            try {
+                const regRes = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, persona: 'veteran' })
+                });
+
+                if (!regRes.ok) {
+                    const d = await regRes.json();
+                    throw new Error(d.message || 'Registration failed');
+                }
+
+                const loginRes = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!loginRes.ok) throw new Error('Auto-login failed.');
+
+                const data = await loginRes.json();
+                localStorage.setItem('auth_token', data.token);
+                localStorage.setItem('zenith_session', JSON.stringify(data.user));
+                window.location.href = '/index.html';
+
+            } catch (err) {
+                errBox.classList.remove('hidden');
+                errText.innerText = err.message;
+                btn.disabled = false;
+                btn.innerHTML = 'Join The Squad <i class="fa-solid fa-arrow-right"></i>';
+            }
+        });
+    </script>
+    <script src="/js/conversion.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof initCountdowns === 'function') initCountdowns();
+            if (typeof initSpots === 'function') initSpots();
+        });
+    </script>
+    <!-- Social Proof -->
+    <section class="py-20 bg-slate-50">
+        <div class="container mx-auto px-4 max-w-4xl" data-component="testimonials">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-serif text-slate-900 mb-4">What Our Members Say</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-4 max-w-5xl" data-component="results">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-serif text-slate-900 mb-4">Real Transformations</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+    </section>
+</body>
+
+</html>

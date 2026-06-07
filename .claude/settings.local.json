@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npx vite build:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm install --save-dev @types/react @types/react-dom)",
+      "Bash(npm install:*)"
+    ]
+  }
+}

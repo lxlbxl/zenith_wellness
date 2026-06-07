@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenith // The Vibe Shift</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@1,400;1,600&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['DM Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        sage: '#B2C5B2',
+                        cream: '#F7F5F0',
+                        charcoal: '#2D2D2D'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .noise-overlay {
+            position: fixed;
+            opacity: 0.05;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://grainy-gradients.vercel.app/noise.svg');
+            pointer-events: none;
+            z-index: 50;
+        }
+    </style>
+</head>
+
+<body class="bg-cream text-charcoal font-sans selection:bg-sage selection:text-white">
+    <div class="noise-overlay"></div>
+
+    <nav
+        class="fixed top-0 w-full p-6 z-40 flex justify-between uppercase text-xs font-bold tracking-widest mix-blend-multiply">
+        <div>Est. 2026</div>
+        <div>Zenith<span class="font-serif italic text-lg lowercase tracking-normal mx-1">wellness</span>Club</div>
+        <div>Login</div>
+    </nav>
+
+    <main class="pt-32 pb-20 px-6 container mx-auto max-w-xl text-center">
+        <div
+            class="w-full aspect-[4/5] bg-gray-200 rounded-t-[10rem] rounded-b-[2rem] overflow-hidden mb-12 relative group">
+            <img src="https://images.unsplash.com/photo-1544367563-12123d8965cd?q=80&w=2070&auto=format&fit=crop"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Vibe">
+            <div class="absolute bottom-6 left-6 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full text-xs font-bold">
+                ✨ Current Mood: Focused
+            </div>
+        </div>
+
+        <h1 class="font-serif italic text-5xl md:text-6xl mb-6">Enter your villain era.</h1>
+        <p class="text-sm md:text-base leading-relaxed text-gray-500 mb-10 max-w-sm mx-auto">
+            Stop scrolling. Start standardizing. <br />
+            The only app that syncs your pilates, matcha, and cortisol levels into one dashboard.
+        </p>
+
+        <div class="bg-white p-8 rounded-[2rem] shadow-xl shadow-sage/20 text-left relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-sage/30 rounded-full blur-2xl"></div>
+
+            <h3 class="font-bold text-lg mb-6 flex items-center gap-2">
+                <span class="w-2 h-2 bg-sage rounded-full"></span>
+                Join the club
+            </h3>
+
+            <form id="regForm" class="space-y-3">
+                <input type="text" id="name" required
+                    class="w-full bg-cream border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-sage placeholder-gray-400"
+                    placeholder="name" />
+                <input type="email" id="email" required
+                    class="w-full bg-cream border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-sage placeholder-gray-400"
+                    placeholder="email" />
+                <input type="password" id="password" required
+                    class="w-full bg-cream border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-sage placeholder-gray-400"
+                    placeholder="password" />
+
+                <button type="submit" id="submitBtn"
+                    class="w-full bg-charcoal text-white rounded-xl py-4 font-bold text-sm uppercase tracking-widest hover:bg-black transition-colors mt-2">
+                    Get Access
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="text-center pb-12 text-[10px] uppercase font-bold tracking-widest text-gray-400">
+        Designed in Paris • Coded in Silicon Valley
+    </footer>
+
+    <script>
+        document.getElementById('regForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            btn.innerText = 'Creating Vibe...';
+            btn.disabled = true;
+
+            try {
+                const regRes = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, persona: 'newbie' })
+                });
+
+                if (!regRes.ok) {
+                    throw new Error('Error');
+                }
+
+                const loginRes = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!loginRes.ok) throw new Error('Error');
+
+                const data = await loginRes.json();
+                localStorage.setItem('auth_token', data.token);
+                localStorage.setItem('zenith_session', JSON.stringify(data.user));
+                window.location.href = '/index.html';
+
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerText = 'Try Again';
+            }
+        });
+    </script>
+    <script src="/js/conversion.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof initCountdowns === 'function') initCountdowns();
+            if (typeof initSpots === 'function') initSpots();
+        });
+    </script>
+    <!-- Social Proof -->
+    <section class="py-20 bg-slate-50">
+        <div class="container mx-auto px-4 max-w-4xl" data-component="testimonials">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-serif text-slate-900 mb-4">What Our Members Say</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-4 max-w-5xl" data-component="results">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-serif text-slate-900 mb-4">Real Transformations</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+    </section>
+</body>
+
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 40px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .header {
+            background-image: linear-gradient(to right, #10b981, #3b82f6);
+            padding: 50px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 10px 0 0;
+            font-size: 16px;
+        }
+
+        .content {
+            padding: 40px;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .stat-box {
+            background-color: #f1f5f9;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 10px 5px;
+        }
+
+        .button-primary {
+            background-image: linear-gradient(to right, #4f46e5, #9333ea);
+        }
+
+        .certificate-box {
+            background-color: #fefce8;
+            border: 2px solid #facc15;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .renewal-box {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .footer {
+            background-color: #f1f5f9;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Congratulations, {{ name }}!</h1>
+            <p>You've completed {{ cohort_name }}</p>
+        </div>
+        <div class="content">
+            <p>What an incredible journey! You showed up, did the work, and made it to the finish line. That's something
+                to be proud of.</p>
+
+            <h3>📊 Your Journey Stats</h3>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-value">{{ journal_entries }}</div>
+                    <div class="stat-label">Journal Entries</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">{{ habits_completed }}</div>
+                    <div class="stat-label">Habits Completed</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">{{ workouts_logged }}</div>
+                    <div class="stat-label">Workouts Logged</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">{{ points_earned }}</div>
+                    <div class="stat-label">Points Earned</div>
+                </div>
+            </div>
+
+            <div class="certificate-box">
+                <p style="margin: 0; font-weight: 600;">🏆 Your Certificate is Ready!</p>
+                <p style="margin: 5px 0; font-size: 14px; color: #64748b;">Verification Code: {{ verification_code }}
+                </p>
+                <a href="{{ certificate_link }}" class="button button-primary">Download Certificate</a>
+            </div>
+
+            <div class="renewal-box">
+                <p style="margin: 0;"><strong>🚀 Keep the Momentum Going</strong></p>
+                <p style="margin: 5px 0; font-size: 14px;">As a Zenith alumni, you get <strong>15% off</strong> your
+                    next program. Don't let your progress fade!</p>
+            </div>
+
+            <p style="text-align: center;">
+                <a href="{{ dashboard_link }}" class="button">View Your Dashboard</a>
+                <a href="{{ programs_link }}" class="button button-primary">Explore Next Steps</a>
+            </p>
+        </div>
+        <div class="footer">
+            &copy; {{ year }} Zenith Wellness. All rights reserved.
+        </div>
+    </div>
+</body>
+
+</html>

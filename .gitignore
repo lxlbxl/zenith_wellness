@@ -1,0 +1,59 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment files
+.env
+.env.*
+!.env.example
+api/.env
+api/.env.*
+!api/.env.example
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Database
+*.sqlite
+*.db
+
+# Secrets
+*.key
+*.pem
+
+# Test results
+test-results/
+playwright-report/
+
+# Build artifacts
+*.tsbuildinfo
+
+# PHP
+vendor/
+composer.lock
+
+# OS
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*.old

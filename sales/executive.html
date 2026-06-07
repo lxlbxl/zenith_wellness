@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenith Executive - ROI on Biology</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Clash Display', 'sans-serif'],
+                    },
+                    colors: {
+                        gold: { 500: '#D4AF37', 600: '#AA8C2C' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-black text-white font-sans antialiased selection:bg-gold-500 selection:text-black">
+
+    <nav class="border-b border-white/10 py-6">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <span class="font-display font-bold text-2xl tracking-tight">ZENITH<span
+                    class="text-gold-500">.EXEC</span></span>
+            <button
+                class="text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">Client
+                Portal Login</button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-6 py-20 lg:py-32 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+        <div class="space-y-10">
+            <div
+                class="inline-flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-none text-[10px] font-bold uppercase tracking-[0.2em] text-gold-500">
+                <span>Limited Intake: Q1 2026</span>
+            </div>
+
+            <h1 class="font-display text-5xl lg:text-7xl font-semibold leading-[1.05] tracking-tight">
+                Your biological <br />
+                infrastructure <br />
+                <span class="text-zinc-600">is failing.</span>
+            </h1>
+
+            <p class="text-zinc-400 text-lg leading-relaxed max-w-lg">
+                You have optimized your portfolio, your team, and your tech stack. But you are running your body on
+                legacy code.
+                <br /><br />
+                Zenith is the <strong>Executive Performance System</strong> that aligns your biological prime time with
+                your high-leverage decisions.
+            </p>
+
+            <div class="grid grid-cols-2 gap-8 border-t border-white/10 pt-8">
+                <div>
+                    <div class="text-3xl font-display font-bold text-white mb-1">4.5h</div>
+                    <div class="text-xs text-zinc-500 uppercase tracking-widest">Deep Work / Day</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-display font-bold text-white mb-1">15%</div>
+                    <div class="text-xs text-zinc-500 uppercase tracking-widest">Cognitive Lift</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-zinc-900 border border-white/5 p-10 lg:p-14 relative">
+            <div class="absolute -top-4 -right-4 w-20 h-20 bg-gold-500/20 blur-3xl rounded-full pointer-events-none">
+            </div>
+
+            <h2 class="font-display text-2xl mb-8">Secure Your Protocol</h2>
+
+            <form id="regForm" class="space-y-6">
+                <div id="errorMsg" class="hidden text-red-400 text-sm mb-4">Error message here</div>
+
+                <div class="space-y-1">
+                    <label class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Full Name</label>
+                    <input type="text" id="name" required
+                        class="w-full bg-black border-b border-white/20 px-0 py-3 text-white focus:border-gold-500 outline-none transition-all placeholder-zinc-800 rounded-none"
+                        placeholder="JOHN DOE" />
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Details</label>
+                    <input type="email" id="email" required
+                        class="w-full bg-black border-b border-white/20 px-0 py-3 text-white focus:border-gold-500 outline-none transition-all placeholder-zinc-800 rounded-none mb-4"
+                        placeholder="EMAIL ADDRESS" />
+                    <input type="password" id="password" required
+                        class="w-full bg-black border-b border-white/20 px-0 py-3 text-white focus:border-gold-500 outline-none transition-all placeholder-zinc-800 rounded-none"
+                        placeholder="PASSWORD" />
+                </div>
+
+                <button type="submit" id="submitBtn"
+                    class="w-full bg-white text-black font-bold uppercase tracking-widest py-5 hover:bg-gold-500 transition-colors mt-8 text-xs">
+                    Initiate Application
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Social Proof -->
+    <section class="py-20 bg-slate-50">
+        <div class="container mx-auto px-4 max-w-4xl" data-component="testimonials">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-serif text-slate-900 mb-4">What Our Members Say</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-4 max-w-5xl" data-component="results">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-serif text-slate-900 mb-4">Real Transformations</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Guarantee Section -->
+    <section class="border-t border-white/10 py-12">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row gap-12 justify-between items-end">
+            <p class="text-zinc-500 text-sm max-w-md">
+                "The most significant ROI I have seen in 30 years of business wasn't a stock. It was sleeping properly."
+                <br /><br />
+                <span class="text-white font-bold">— Alex T, Hedge Fund Manager</span>
+            </p>
+            <div class="flex gap-4">
+                <div class="w-12 h-12 border border-white/10 flex items-center justify-center text-zinc-500"><i
+                        class="fa-brands fa-apple"></i></div>
+                <div class="w-12 h-12 border border-white/10 flex items-center justify-center text-zinc-500"><i
+                        class="fa-brands fa-google"></i></div>
+                <div class="w-12 h-12 border border-white/10 flex items-center justify-center text-zinc-500"><i
+                        class="fa-brands fa-amazon"></i></div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.getElementById('regForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const errBox = document.getElementById('errorMsg');
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            btn.innerText = 'PROCESSING...';
+            btn.disabled = true;
+            errBox.classList.add('hidden');
+
+            try {
+                const regRes = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, persona: 'lead' }) // 'lead' fits Executive best until they buy
+                });
+
+                if (!regRes.ok) {
+                    const d = await regRes.json();
+                    throw new Error(d.message || 'Error');
+                }
+
+                const loginRes = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!loginRes.ok) throw new Error('Auth Error');
+
+                const data = await loginRes.json();
+                localStorage.setItem('auth_token', data.token);
+                localStorage.setItem('zenith_session', JSON.stringify(data.user));
+                window.location.href = '/index.html';
+
+            } catch (err) {
+                errBox.classList.remove('hidden');
+                errBox.innerText = err.message || 'Application Failed';
+                btn.disabled = false;
+                btn.innerText = 'INITIATE APPLICATION';
+            }
+        });
+    </script>
+    <script src="/js/conversion.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof initCountdowns === 'function') initCountdowns();
+            if (typeof initSpots === 'function') initSpots();
+        });
+    </script>
+</body>
+
+</html>

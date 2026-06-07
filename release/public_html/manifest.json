@@ -1,0 +1,17 @@
+{
+    "name": "Zenith Wellness Portal",
+    "short_name": "Zenith",
+    "description": "Premium AI-driven wellness and metabolic productivity platform.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#fafaf9",
+    "theme_color": "#4f46e5",
+    "icons": [
+        {
+            "src": "https://cdn-icons-png.flaticon.com/512/3062/3062140.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
