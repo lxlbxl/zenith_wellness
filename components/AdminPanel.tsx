@@ -11,8 +11,9 @@ import AdminActivity from './admin/AdminActivity';
 import { CohortManagement } from './admin/CohortManagement';
 import AdminCompliance from './admin/AdminCompliance';
 import VariantStudio from './admin/VariantStudio';
+import ExperimentsDashboard from './admin/ExperimentsDashboard';
 
-type AdminTab = 'overview' | 'users' | 'cohorts' | 'finance' | 'leads' | 'content' | 'settings' | 'analytics' | 'variants' | 'compliance' | 'activity';
+type AdminTab = 'overview' | 'users' | 'cohorts' | 'finance' | 'leads' | 'content' | 'settings' | 'analytics' | 'experiments' | 'variants' | 'compliance' | 'activity';
 
 const AdminPanel: React.FC = () => {
     const [activeTab, setActiveTab] = useState<AdminTab>('overview');
@@ -20,6 +21,7 @@ const AdminPanel: React.FC = () => {
     const menuItems: { id: AdminTab; label: string; icon: string }[] = [
         { id: 'overview', label: 'Overview', icon: 'fa-chart-pie' },
         { id: 'analytics', label: 'Analytics', icon: 'fa-chart-line' },
+        { id: 'experiments', label: 'Experiments', icon: 'fa-flask' },
         { id: 'activity', label: 'Activity', icon: 'fa-clock-rotate-left' },
         { id: 'users', label: 'Users', icon: 'fa-users' },
         { id: 'cohorts', label: 'Cohorts', icon: 'fa-users-viewfinder' },
@@ -66,6 +68,7 @@ const AdminPanel: React.FC = () => {
                 <main className="flex-1 min-h-[500px]">
                     {activeTab === 'overview' && <AdminOverview />}
                     {activeTab === 'analytics' && <AdminAnalytics />}
+                    {activeTab === 'experiments' && <ExperimentsDashboard />}
                     {activeTab === 'activity' && <AdminActivity />}
                     {activeTab === 'users' && <AdminUsers />}
                     {activeTab === 'cohorts' && <CohortManagement />}

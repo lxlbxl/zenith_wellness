@@ -53,6 +53,9 @@ class ExperimentController
             case 'identify':
                 $this->handleIdentify();
                 break;
+            case 'active':
+                $this->handleActiveManifest();
+                break;
             default:
                 http_response_code(404);
                 echo json_encode(['error' => 'Unknown experiment action']);
@@ -212,6 +215,46 @@ class ExperimentController
         ]);
     }
 
+    /**
+     * GET /api/exp/active — Return shipped experiment manifests (baked-in winners).
+     *
+     * Returns a map of experiment_key => { variant, config } for all shipped
+     * experiments. The useExperiment hook reads this on mount so that shipped
+     * winners are served to all users without needing per-visitor assignment.
+     */
+    private function handleActiveManifest(): void
+    {
+        $stmt = $this->db->query(
+            "SELECT e.key_slug, e.primary_goal_event, ed.winning_variant_id, ev.key_slug AS variant_key,
+                    ev.name AS variant_name, ev.config AS variant_config
+             FROM experiments e
+             JOIN experiment_decisions ed ON ed.experiment_id = e.id
+             JOIN experiment_variants ev ON ev.id = ed.winning_variant_id
+             WHERE e.status = 'shipped'
+               AND ed.decision_type = 'shipped'
+             GROUP BY e.id
+             ORDER BY e.updated_at DESC"
+        );
+
+        $manifest = [];
+
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $config = null;
+            if ($row['variant_config'] && is_string($row['variant_config'])) {
+                $config = json_decode($row['variant_config'], true);
+            }
+
+            $manifest[$row['key_slug']] = [
+                'variant' => $row['variant_key'],
+                'variant_name' => $row['variant_name'],
+                'config' => $config,
+                'primary_goal_event' => $row['primary_goal_event'],
+            ];
+        }
+
+        echo json_encode(['active' => $manifest]);
+    }
+
     // ─── Admin Endpoints ────────────────────────────────────────
 
     /**
@@ -271,6 +314,9 @@ class ExperimentController
                 break;
             case 'timeline':
                 $this->handleAdminTimeline($id);
+                break;
+            case 'timeseries':
+                $this->handleAdminTimeseries($id);
                 break;
             default:
                 http_response_code(404);
@@ -589,6 +635,15 @@ class ExperimentController
     {
         $timeline = $this->statsService->getTimeline($id);
         echo json_encode(['timeline' => $timeline]);
+    }
+
+    /**
+     * GET /api/admin/experiments/{id}/timeseries — Get daily time-series data.
+     */
+    private function handleAdminTimeseries(string $id): void
+    {
+        $timeseries = $this->statsService->getTimeseries($id);
+        echo json_encode(['timeseries' => $timeseries]);
     }
 
     // ─── Helpers ────────────────────────────────────────────────

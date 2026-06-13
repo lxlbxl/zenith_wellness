@@ -95,38 +95,53 @@ export function ExperimentProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    if (needsFetch.length === 0) {
-      isReadyRef.current = true;
-      refresh();
-      return;
-    }
-
     const context = gatherContext();
 
-    fetch('/api/exp/assign', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        visitor_id: getVisitorId(),
-        experiments: needsFetch,
-        context,
-      }),
-    })
+    const fetchAssignments = needsFetch.length > 0
+      ? fetch('/api/exp/assign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            visitor_id: getVisitorId(),
+            experiments: needsFetch,
+            context,
+          }),
+        })
+          .then((res) => (res.ok ? res.json() : Promise.reject()))
+          .then((data: Record<string, { variant: string; config: Record<string, unknown> }>) => {
+            const updated: Record<string, ExperimentAssignment & { _cachedAt: number }> = {};
+            for (const key of needsFetch) {
+              const server = data[key];
+              if (server) {
+                assignmentsRef.current[key] = { variant: server.variant, config: server.config };
+                updated[key] = { ...server, _cachedAt: now };
+              }
+            }
+            saveCache({ ...cached, ...updated });
+          })
+          .catch(() => {
+            // server unavailable — defaults are already set
+          })
+      : Promise.resolve();
+
+    // Fetch shipped manifest — baked-in winners override per-visitor assignments
+    const fetchManifest = fetch('/api/exp/active')
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data: Record<string, { variant: string; config: Record<string, unknown> }>) => {
-        const updated: Record<string, ExperimentAssignment & { _cachedAt: number }> = {};
-        for (const key of needsFetch) {
-          const server = data[key];
-          if (server) {
-            assignmentsRef.current[key] = { variant: server.variant, config: server.config };
-            updated[key] = { ...server, _cachedAt: now };
+      .then((data: { active: Record<string, { variant: string; config: Record<string, unknown> }> }) => {
+        if (data.active) {
+          for (const [key, entry] of Object.entries(data.active)) {
+            if (assignmentsRef.current[key]) {
+              assignmentsRef.current[key] = { variant: entry.variant, config: entry.config };
+            }
           }
         }
-        saveCache({ ...cached, ...updated });
       })
       .catch(() => {
-        // server unavailable — defaults are already set
-      })
+        // manifest unavailable — shipped winners not applied
+      });
+
+    Promise.all([fetchAssignments, fetchManifest])
+      .catch(() => {})
       .finally(() => {
         isReadyRef.current = true;
         refresh();

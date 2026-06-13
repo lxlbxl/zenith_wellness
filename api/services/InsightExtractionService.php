@@ -617,19 +617,18 @@ PROMPT;
      */
     private function markExtracted(string $experimentId): void
     {
-        $stmt = $this->db->prepare("
-            INSERT INTO experiment_decisions
-                (experiment_id, decision_type, actor, rationale)
-            VALUES
-                (:experimentId, 'shipped', 'engine', :rationale)
-            ON DUPLICATE KEY UPDATE
-                actor = VALUES(actor),
-                rationale = VALUES(rationale)
-        ");
-        $stmt->execute([
-            ':experimentId' => $experimentId,
-            ':rationale' => json_encode(['action' => 'insights_extracted']),
-        ]);
+        $rationale = json_encode(['action' => 'insights_extracted']);
+
+        // Check if a decision already exists; upsert.
+        $check = $this->db->prepare("SELECT 1 FROM experiment_decisions WHERE experiment_id = :id LIMIT 1");
+        $check->execute([':id' => $experimentId]);
+
+        if ($check->fetch()) {
+            $stmt = $this->db->prepare("UPDATE experiment_decisions SET actor = 'engine', rationale = :rationale WHERE experiment_id = :id");
+        } else {
+            $stmt = $this->db->prepare("INSERT INTO experiment_decisions (experiment_id, decision_type, actor, rationale) VALUES (:id, 'shipped', 'engine', :rationale)");
+        }
+        $stmt->execute([':id' => $experimentId, ':rationale' => $rationale]);
     }
 
     private function uuid(): string

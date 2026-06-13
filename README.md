@@ -111,6 +111,52 @@ Run end-to-end tests:
 npm run test:e2e
 ```
 
+## 🧪 A/B Experiment Engine
+
+The platform includes a built-in A/B testing engine with Thompson Sampling bandit allocation, Bayesian statistics, and automatic promotion.
+
+### Cron Jobs
+
+The following cron job keeps experiment statistics up to date:
+
+```bash
+# Refresh experiment stats every 5 minutes
+*/5 * * * * php /path/to/api/scripts/refresh_experiment_stats.php > /dev/null 2>&1
+```
+
+This script:
+1. Refreshes `experiment_segment_stats` from raw `experiment_events`
+2. Computes Monte Carlo prob_best (configured via `EXPERIMENT_MC_SAMPLES`, default 20000)
+3. Runs SRM detection via chi-square test
+4. Checks auto-promote conditions
+
+### Seed Data
+
+Initial experiments can be seeded with:
+
+```bash
+php api/seed_experiments.php
+```
+
+### Configuration
+
+See `api/.env.example` for experiment engine environment variables:
+
+| Variable | Description | Default |
+|---|---|---|
+| `EXPERIMENT_ENGINE_ENABLED` | Master toggle for the experiment engine | `true` |
+| `EXPERIMENT_HOLDOUT_PERCENT` | Global holdout percentage | `0` |
+| `EXPERIMENT_MC_SAMPLES` | Monte Carlo draws for prob_best | `20000` |
+| `EXPERIMENT_AI_GENERATION_ENABLED` | Kill switch for AI variant generation | `false` |
+| `VARIANT_GEN_MODEL` | AI model for variant generation | `gemini-1.5-flash` |
+| `VARIANT_GEN_MAX_CANDIDATES` | Max candidates per generation | `5` |
+| `VARIANT_GEN_MONTHLY_TOKEN_CEILING` | Monthly token budget for AI gen | `1000000` |
+| `INSIGHT_DECAY_DAYS` | Days before an insight decays | `90` |
+
+### Frontend Integration
+
+The frontend reads `VITE_EXPERIMENTS_ENABLED` from `.env` to enable/disable experiment hooks.
+
 ## 📱 Responsive Design
 
 The application is fully responsive and optimized for:

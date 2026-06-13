@@ -296,6 +296,7 @@ class ExperimentStatsService
      *  3. All variants have >= min_samples_per_variant exposures
      *  4. One variant has prob_best >= confidence_threshold in all segments
      *  5. No active SRM alert
+     *  6. Guardrail metrics (event rates, revenue/visitor) not significantly degraded
      *
      * @return array  Actions taken: [{experiment_id, key_slug, winning_variant_id, action}, ...]
      */
@@ -387,6 +388,23 @@ class ExperimentStatsService
             if ($v['id'] === $bestVariantId && (int) ($v['is_control'] ?? 0) === 1) {
                 return null;
             }
+        }
+
+        // Guardrail check: ensure the winner doesn't degrade guardrail metrics
+        $guardrailResult = $this->checkGuardrailsForWinner($experiment, $bestVariantId, $variants);
+        if (!$guardrailResult['passed']) {
+            $this->logDecision(
+                $experimentId,
+                'auto_promote_suggested',
+                $bestVariantId,
+                'engine',
+                [
+                    'action' => 'blocked_by_guardrail',
+                    'reason' => $guardrailResult['reason'],
+                    'details' => $guardrailResult['details'] ?? null,
+                ]
+            );
+            return null;
         }
 
         // Ship the winner
@@ -1003,6 +1021,345 @@ class ExperimentStatsService
         }
 
         return $row ?: [];
+    }
+
+    /**
+     * Get daily time-series data for allocation & performance chart.
+     *
+     * Returns daily aggregates: exposures, conversions, conversion_rate per variant.
+     *
+     * @param string $experimentId
+     * @return array  [{ date, variant_id, key_slug, name, is_control, exposures, conversions, conversion_rate }, ...]
+     */
+    public function getTimeseries(string $experimentId): array
+    {
+        $variants = $this->loadVariants($experimentId);
+        if (empty($variants)) {
+            return [];
+        }
+
+        $variantMap = [];
+        foreach ($variants as $v) {
+            $variantMap[$v['id']] = $v;
+        }
+
+        // Get exposure and goal counts per day per variant
+        $stmt = $this->db->prepare(
+            "SELECT DATE(created_at) as day, variant_id,
+                    COUNT(*) as total,
+                    SUM(CASE WHEN is_goal = 1 THEN 1 ELSE 0 END) as goals
+             FROM experiment_events
+             WHERE experiment_id = ? AND event_type != 'exposure'
+             GROUP BY DATE(created_at), variant_id
+             ORDER BY day ASC"
+        );
+        $stmt->execute([$experimentId]);
+
+        $dailyData = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $day = $row['day'];
+            $variantId = $row['variant_id'];
+            if (!isset($dailyData[$day])) {
+                $dailyData[$day] = [];
+            }
+            $dailyData[$day][$variantId] = [
+                'conversions' => (int) $row['goals'],
+                'events' => (int) $row['total'],
+            ];
+        }
+
+        // Get daily exposure counts separately
+        $stmtExp = $this->db->prepare(
+            "SELECT DATE(created_at) as day, variant_id, COUNT(*) as cnt
+             FROM experiment_events
+             WHERE experiment_id = ? AND event_type = 'exposure'
+             GROUP BY DATE(created_at), variant_id
+             ORDER BY day ASC"
+        );
+        $stmtExp->execute([$experimentId]);
+
+        while ($row = $stmtExp->fetch(PDO::FETCH_ASSOC)) {
+            $day = $row['day'];
+            $variantId = $row['variant_id'];
+            if (!isset($dailyData[$day])) {
+                $dailyData[$day] = [];
+            }
+            if (!isset($dailyData[$day][$variantId])) {
+                $dailyData[$day][$variantId] = ['conversions' => 0, 'events' => 0];
+            }
+            $dailyData[$day][$variantId]['exposures'] = (int) $row['cnt'];
+        }
+
+        // Build result
+        $result = [];
+        foreach ($dailyData as $day => $variantDays) {
+            $dayTotalExposures = array_sum(array_column($variantDays, 'exposures'));
+
+            foreach ($variantMap as $vId => $v) {
+                $entry = $variantDays[$vId] ?? ['exposures' => 0, 'conversions' => 0, 'events' => 0];
+                $exposures = (int) ($entry['exposures'] ?? 0);
+                $conversions = (int) ($entry['conversions'] ?? 0);
+
+                $result[] = [
+                    'date' => $day,
+                    'variant_id' => $vId,
+                    'key_slug' => $v['key_slug'],
+                    'name' => $v['name'],
+                    'is_control' => (int) ($v['is_control'] ?? 0),
+                    'exposures' => $exposures,
+                    'conversions' => $conversions,
+                    'conversion_rate' => $exposures > 0 ? round($conversions / $exposures, 6) : 0,
+                    'traffic_share' => $dayTotalExposures > 0 ? round(($exposures / $dayTotalExposures) * 100, 2) : 0,
+                ];
+            }
+        }
+
+        return $result;
+    }
+
+    // ─── A.5.6 — Guardrail Metric Check ───────────────────────────
+
+    /**
+     * Check that the winning variant does not degrade guardrail metrics
+     * compared to the control variant.
+     *
+     * Guardrails can be:
+     *  - Event names in guardrail_events JSON array (e.g. "refund_requested")
+     *    → checks that the treatment does not significantly increase this event rate.
+     *  - "revenue_per_visitor" (special metric key)
+     *    → checks that revenue/visitor does not significantly decrease.
+     *
+     * Uses two-proportion z-test (p < 0.05) for event rates,
+     * and Bayesian Monte Carlo for revenue/visitor.
+     *
+     * @return array{passed: bool, reason?: string, details?: array}
+     */
+    private function checkGuardrailsForWinner(array $experiment, string $winnerId, array $variants): array
+    {
+        $guardrailEvents = $experiment['guardrail_events'] ?? null;
+        if ($guardrailEvents === null) {
+            return ['passed' => true];
+        }
+
+        if (is_string($guardrailEvents)) {
+            $guardrailEvents = json_decode($guardrailEvents, true);
+        }
+
+        if (!is_array($guardrailEvents) || empty($guardrailEvents)) {
+            return ['passed' => true];
+        }
+
+        $experimentId = $experiment['id'];
+
+        // Find control variant
+        $controlId = null;
+        foreach ($variants as $v) {
+            if ((int) ($v['is_control'] ?? 0) === 1) {
+                $controlId = $v['id'];
+                break;
+            }
+        }
+
+        if ($controlId === null) {
+            return ['passed' => true]; // No control to compare against
+        }
+
+        // Load exposures for control and winner
+        $controlExposures = $this->loadVariantExposures($experimentId, $controlId);
+        $winnerExposures = $this->loadVariantExposures($experimentId, $winnerId);
+
+        $violations = [];
+
+        foreach ($guardrailEvents as $guardrail) {
+            $guardrail = trim($guardrail);
+
+            if ($guardrail === 'revenue_per_visitor') {
+                // Revenue-per-visitor guardrail
+                $result = $this->checkRevenueGuardrail($experimentId, $controlId, $winnerId, $controlExposures, $winnerExposures);
+                if (!$result['passed']) {
+                    $violations[] = $result;
+                }
+            } elseif (!empty($guardrail)) {
+                // Event-type guardrail
+                $result = $this->checkEventGuardrail($experimentId, $controlId, $winnerId, $guardrail, $controlExposures, $winnerExposures);
+                if (!$result['passed']) {
+                    $violations[] = $result;
+                }
+            }
+        }
+
+        if (!empty($violations)) {
+            $reasons = array_map(fn($v) => $v['reason'], $violations);
+            return [
+                'passed' => false,
+                'reason' => 'Guardrail violations: ' . implode('; ', $reasons),
+                'details' => $violations,
+            ];
+        }
+
+        return ['passed' => true];
+    }
+
+    /**
+     * Check a specific event-type guardrail: ensure the winning variant
+     * does not significantly increase the rate of this event.
+     *
+     * Uses two-proportion z-test (p < 0.05) — significant increase = violation.
+     */
+    private function checkEventGuardrail(
+        string $experimentId,
+        string $controlId,
+        string $winnerId,
+        string $eventType,
+        int $controlExposures,
+        int $winnerExposures
+    ): array {
+        $stmt = $this->db->prepare(
+            "SELECT variant_id, COUNT(*) as cnt
+             FROM experiment_events
+             WHERE experiment_id = ? AND event_type = ? AND variant_id IN (?, ?)
+             GROUP BY variant_id"
+        );
+        $stmt->execute([$experimentId, $eventType, $controlId, $winnerId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+        $controlEvents = (int) ($rows[$controlId] ?? 0);
+        $winnerEvents = (int) ($rows[$winnerId] ?? 0);
+
+        $controlRate = $controlExposures > 0 ? $controlEvents / $controlExposures : 0;
+        $winnerRate = $winnerExposures > 0 ? $winnerEvents / $winnerExposures : 0;
+
+        // If winner's rate is not higher than control, no violation
+        if ($winnerRate <= $controlRate) {
+            return ['passed' => true];
+        }
+
+        // Two-proportion z-test: check if the increase is significant
+        $pValue = $this->twoProportionZTest(
+            $controlEvents, $controlExposures,
+            $winnerEvents, $winnerExposures
+        );
+
+        // p < 0.05 means significant increase in guardrail event rate
+        if ($pValue < 0.05) {
+            return [
+                'passed' => false,
+                'reason' => "Guardrail event '{$eventType}' significantly higher in winner (control: {$controlRate}, winner: {$winnerRate}, p={$pValue})",
+                'guardrail' => $eventType,
+                'control_rate' => round($controlRate, 6),
+                'winner_rate' => round($winnerRate, 6),
+                'p_value' => $pValue,
+            ];
+        }
+
+        return ['passed' => true];
+    }
+
+    /**
+     * Check the revenue-per-visitor guardrail: ensure the winning variant
+     * does not significantly decrease revenue per visitor.
+     *
+     * Uses Monte Carlo draws from Beta posteriors on conversion rate +
+     * average revenue per conversion to estimate expected revenue/visitor.
+     */
+    private function checkRevenueGuardrail(
+        string $experimentId,
+        string $controlId,
+        string $winnerId,
+        int $controlExposures,
+        int $winnerExposures
+    ): array {
+        // Load revenue data
+        $stmt = $this->db->prepare(
+            "SELECT variant_id,
+                    COUNT(*) as conversions,
+                    COALESCE(SUM(value_cents), 0) as revenue_cents
+             FROM experiment_events
+             WHERE experiment_id = ? AND is_goal = 1 AND variant_id IN (?, ?)
+             GROUP BY variant_id"
+        );
+        $stmt->execute([$experimentId, $controlId, $winnerId]);
+        $rows = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $rows[$row['variant_id']] = $row;
+        }
+
+        $cData = $rows[$controlId] ?? ['conversions' => 0, 'revenue_cents' => 0];
+        $wData = $rows[$winnerId] ?? ['conversions' => 0, 'revenue_cents' => 0];
+
+        $cConv = (int) $cData['conversions'];
+        $cRev = (int) $cData['revenue_cents'];
+        $wConv = (int) $wData['conversions'];
+        $wRev = (int) $wData['revenue_cents'];
+
+        $cRPV = $controlExposures > 0 ? $cRev / $controlExposures : 0;
+        $wRPV = $winnerExposures > 0 ? $wRev / $winnerExposures : 0;
+
+        // If winner's RPV is not lower, no violation
+        if ($wRPV >= $cRPV) {
+            return ['passed' => true];
+        }
+
+        // Bayesian Monte Carlo: draw from conversion rate posteriors
+        // and estimate P(winner_revenue < control_revenue)
+        $cAlpha = $cConv + 1;
+        $cBeta = ($controlExposures - $cConv) + 1;
+        $wAlpha = $wConv + 1;
+        $wBeta = ($winnerExposures - $wConv) + 1;
+
+        // Average revenue per conversion
+        $cAvgRev = $cConv > 0 ? $cRev / $cConv : 0;
+        $wAvgRev = $wConv > 0 ? $wRev / $wConv : 0;
+
+        // If no revenue data for one side, default to no violation
+        if ($cAvgRev <= 0 || $wAvgRev <= 0) {
+            return ['passed' => true];
+        }
+
+        // Draw from posteriors to estimate P(winner_RPV < control_RPV)
+        $inferiorDraws = 0;
+        $totalDraws = 5000;
+
+        for ($i = 0; $i < $totalDraws; $i++) {
+            $cRate = $this->bandit->sampleBeta($cAlpha, $cBeta);
+            $wRate = $this->bandit->sampleBeta($wAlpha, $wBeta);
+
+            $cRPV_Draw = $cRate * $cAvgRev;
+            $wRPV_Draw = $wRate * $wAvgRev;
+
+            if ($wRPV_Draw < $cRPV_Draw) {
+                $inferiorDraws++;
+            }
+        }
+
+        $probInferior = $inferiorDraws / $totalDraws;
+
+        // If P(winner_RPV < control_RPV) > 0.90, it's a violation
+        if ($probInferior > 0.90) {
+            return [
+                'passed' => false,
+                'reason' => "Revenue-per-visitor guardrail: P(winner < control) = {$probInferior} (threshold: 0.90, control: {$cRPV}, winner: {$wRPV})",
+                'guardrail' => 'revenue_per_visitor',
+                'control_rpv' => round($cRPV, 2),
+                'winner_rpv' => round($wRPV, 2),
+                'prob_inferior' => round($probInferior, 4),
+            ];
+        }
+
+        return ['passed' => true];
+    }
+
+    /**
+     * Load total exposures for a specific variant in an experiment.
+     */
+    private function loadVariantExposures(string $experimentId, string $variantId): int
+    {
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM experiment_events
+             WHERE experiment_id = ? AND variant_id = ? AND event_type = 'exposure'"
+        );
+        $stmt->execute([$experimentId, $variantId]);
+        return (int) $stmt->fetchColumn();
     }
 
     private function formatExperiment(array $experiment): array
