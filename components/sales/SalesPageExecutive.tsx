@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from '../../types';
 import SalesAction from './SalesAction';
+import VideoPlayer from '../ui/VideoPlayer';
+import SpotsRemaining from '../ui/SpotsRemaining';
+import CountdownTimer from '../ui/CountdownTimer';
 import MemberCount from '../ui/MemberCount';
 import TestimonialCarousel from '../ui/TestimonialCarousel';
 import ResultsGallery from '../ui/ResultsGallery';
+import { track } from '../../src/analytics';
 
 interface SalesPageExecutiveProps {
     user?: User;
@@ -14,8 +18,18 @@ interface SalesPageExecutiveProps {
 }
 
 const SalesPageExecutive: React.FC<SalesPageExecutiveProps> = ({ user, onLogin, onPurchase, onSwitchToLogin, price = 12900 }) => {
+    const [showVSL, setShowVSL] = useState(false);
     return (
         <div className="min-h-screen bg-black text-white font-sans antialiased selection:bg-[#D4AF37] selection:text-black pb-20">
+            {/* VSL Modal */}
+            {showVSL && (
+                <VideoPlayer
+                    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                    duration="14:20"
+                    onClose={() => setShowVSL(false)}
+                    onPurchase={onPurchase}
+                />
+            )}
             <nav className="border-b border-white/10 py-6">
                 <div className="container mx-auto px-6 flex justify-between items-center">
                     <span className="font-bold text-2xl tracking-tight">ZENITH<span className="text-[#D4AF37]">.EXEC</span></span>
@@ -55,6 +69,12 @@ const SalesPageExecutive: React.FC<SalesPageExecutiveProps> = ({ user, onLogin, 
                             <div className="text-xs text-zinc-500 uppercase tracking-widest">Cognitive Lift</div>
                         </div>
                     </div>
+                    <button
+                        onClick={() => { setShowVSL(true); track('cta_click', { cta_label: 'Watch Video', variant: 'executive' }); }}
+                        className="inline-flex items-center gap-3 px-6 py-3 bg-[#D4AF37] text-black rounded-xl font-bold uppercase tracking-wider hover:bg-[#e8c84a] transition-all shadow-lg text-sm"
+                    >
+                        <i className="fa-solid fa-play"></i> Watch the Walkthrough
+                    </button>
                 </div>
 
                 <div className="bg-zinc-900 border border-white/5 p-10 lg:p-14 relative animate-in slide-in-from-right duration-700">
@@ -116,13 +136,20 @@ const SalesPageExecutive: React.FC<SalesPageExecutiveProps> = ({ user, onLogin, 
             {!user && (
                 <div className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-900 border-t border-white/10 shadow-2xl md:hidden p-4">
                     <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                            <button
-                                onClick={onPurchase}
-                                className="w-full bg-[#D4AF37] text-black py-3 px-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-[#e8c84a] transition-all shadow-lg"
-                            >
-                                Initiate Application
-                            </button>
+                        <div className="flex-1 min-w-0 space-y-2">
+                            <div className="flex items-center gap-2 text-xs">
+                                <span className="text-zinc-400 font-medium">Cohort closes:</span>
+                                <CountdownTimer targetDate={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} size="sm" variant="inline" />
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={onPurchase}
+                                    className="flex-1 bg-[#D4AF37] text-black py-3 px-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-[#e8c84a] transition-all shadow-lg"
+                                >
+                                    Initiate Application
+                                </button>
+                                <SpotsRemaining />
+                            </div>
                         </div>
                     </div>
                 </div>

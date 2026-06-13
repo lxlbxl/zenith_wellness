@@ -46,6 +46,9 @@ playwright-report/
 # Build artifacts
 *.tsbuildinfo
 
+# Release directory
+release/
+
 # PHP
 vendor/
 composer.lock

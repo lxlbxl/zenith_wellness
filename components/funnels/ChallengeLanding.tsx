@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { User } from '../../types';
+import CountdownTimer from '../ui/CountdownTimer';
+import MemberCount from '../ui/MemberCount';
 import { track } from '../../src/analytics';
 
 interface ChallengeLandingProps {
@@ -9,28 +11,11 @@ interface ChallengeLandingProps {
 }
 
 const ChallengeLanding: React.FC<ChallengeLandingProps> = ({ onRegister, onLogin, onSwitchToLogin }) => {
-    const [countdown, setCountdown] = useState({ days: 2, hours: 14, minutes: 47, seconds: 23 });
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // Countdown timer
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCountdown(prev => {
-                let { days, hours, minutes, seconds } = prev;
-                seconds--;
-                if (seconds < 0) { seconds = 59; minutes--; }
-                if (minutes < 0) { minutes = 59; hours--; }
-                if (hours < 0) { hours = 23; days--; }
-                if (days < 0) { days = 0; hours = 0; minutes = 0; seconds = 0; }
-                return { days, hours, minutes, seconds };
-            });
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
 
     const weekData = [
         {
@@ -142,20 +127,7 @@ const ChallengeLanding: React.FC<ChallengeLandingProps> = ({ onRegister, onLogin
                         {/* Countdown */}
                         <div className="inline-flex items-center gap-4 mb-8 bg-white/5 backdrop-blur-sm px-6 py-3 rounded-full border border-white/10">
                             <span className="text-red-400 font-bold text-sm">Cohort closes in:</span>
-                            <div className="flex gap-2 font-mono">
-                                <div className="bg-red-500/20 px-3 py-1 rounded-lg text-red-300">
-                                    {String(countdown.days).padStart(2, '0')}d
-                                </div>
-                                <div className="bg-red-500/20 px-3 py-1 rounded-lg text-red-300">
-                                    {String(countdown.hours).padStart(2, '0')}h
-                                </div>
-                                <div className="bg-red-500/20 px-3 py-1 rounded-lg text-red-300">
-                                    {String(countdown.minutes).padStart(2, '0')}m
-                                </div>
-                                <div className="bg-red-500/20 px-3 py-1 rounded-lg text-red-300 animate-pulse">
-                                    {String(countdown.seconds).padStart(2, '0')}s
-                                </div>
-                            </div>
+                            <CountdownTimer targetDate={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} size="sm" variant="inline" />
                         </div>
 
                         {/* Headline */}
@@ -167,7 +139,7 @@ const ChallengeLanding: React.FC<ChallengeLandingProps> = ({ onRegister, onLogin
                         </h1>
 
                         <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-10">
-                            Join 15,000+ women who used our science-backed protocol to balance hormones, boost energy, and finally feel at home in their bodies. <strong className="text-emerald-400">First 7 days are FREE.</strong>
+                            Join <MemberCount initialCount={null} label="" variant="minimal" /> women who used our science-backed protocol to balance hormones, boost energy, and finally feel at home in their bodies. <strong className="text-emerald-400">First 7 days are FREE.</strong>
                         </p>
 
                         {/* CTA Form */}
@@ -211,7 +183,7 @@ const ChallengeLanding: React.FC<ChallengeLandingProps> = ({ onRegister, onLogin
                                 ))}
                             </div>
                             <span className="text-sm text-slate-400">
-                                <strong className="text-white">2,847</strong> women started this week
+                                <MemberCount initialCount={null} label="joined this week" variant="minimal" /> joined this week
                             </span>
                         </div>
                     </div>
@@ -460,9 +432,11 @@ const ChallengeLanding: React.FC<ChallengeLandingProps> = ({ onRegister, onLogin
                     </button>
 
                     {/* Countdown reminder */}
-                    <p className="mt-6 text-red-400 font-medium animate-pulse">
-                        ⏰ Only {countdown.days}d {countdown.hours}h {countdown.minutes}m left to join this cohort
-                    </p>
+                    <div className="mt-6 flex items-center justify-center gap-2 text-red-400 font-medium">
+                        <span className="animate-pulse">⏰</span>
+                        <CountdownTimer targetDate={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} size="sm" variant="inline" />
+                        <span>left to join this cohort</span>
+                    </div>
                 </div>
             </section>
 

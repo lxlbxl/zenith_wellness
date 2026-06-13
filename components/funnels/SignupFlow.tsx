@@ -7,6 +7,18 @@ interface SignupFlowProps {
     onSwitchToLogin?: () => void;
 }
 
+const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
+    let score = 0;
+    if (password.length >= 10) score += 1;
+    if (/\d/.test(password)) score += 1;
+    if (/[^a-zA-Z0-9]/.test(password)) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+
+    if (score <= 1) return { score, label: 'Weak', color: 'bg-red-500' };
+    if (score <= 3) return { score, label: 'Medium', color: 'bg-amber-500' };
+    return { score, label: 'Strong', color: 'bg-green-500' };
+};
+
 const SignupFlow: React.FC<SignupFlowProps> = ({ onComplete, onSwitchToLogin }) => {
     const [step, setStep] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
@@ -117,7 +129,7 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ onComplete, onSwitchToLogin }) 
             case 1: return formData.name.length >= 2 && formData.email.includes('@');
             case 2: return formData.goals.length > 0;
             case 3: return formData.primaryFocus !== '';
-            case 4: return formData.password.length >= 6;
+            case 4: return getPasswordStrength(formData.password).score >= 4;
             default: return false;
         }
     };
@@ -347,9 +359,38 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ onComplete, onSwitchToLogin }) 
                                         type="password"
                                         value={formData.password}
                                         onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                                        placeholder="Minimum 6 characters"
+                                        placeholder="Minimum 10 characters"
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                     />
+                                    {formData.password.length > 0 && (
+                                        <div className="mt-3 space-y-2">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                                                    <div
+                                                        className={`h-full rounded-full transition-all duration-300 ${getPasswordStrength(formData.password).color}`}
+                                                        style={{ width: `${(getPasswordStrength(formData.password).score / 4) * 100}%` }}
+                                                    />
+                                                </div>
+                                                <span className={`text-xs font-bold ${getPasswordStrength(formData.password).score <= 1 ? 'text-red-400' : getPasswordStrength(formData.password).score <= 3 ? 'text-amber-400' : 'text-green-400'}`}>
+                                                    {getPasswordStrength(formData.password).label}
+                                                </span>
+                                            </div>
+                                            <ul className="space-y-1 text-xs text-white/50">
+                                                <li className={formData.password.length >= 10 ? 'text-green-400' : ''}>
+                                                    {formData.password.length >= 10 ? '✓' : '○'} At least 10 characters
+                                                </li>
+                                                <li className={/[A-Z]/.test(formData.password) ? 'text-green-400' : ''}>
+                                                    {/[A-Z]/.test(formData.password) ? '✓' : '○'} One uppercase letter
+                                                </li>
+                                                <li className={/\d/.test(formData.password) ? 'text-green-400' : ''}>
+                                                    {/\d/.test(formData.password) ? '✓' : '○'} One number
+                                                </li>
+                                                <li className={/[^a-zA-Z0-9]/.test(formData.password) ? 'text-green-400' : ''}>
+                                                    {/[^a-zA-Z0-9]/.test(formData.password) ? '✓' : '○'} One special character
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    )}
                                     <p className="text-white/40 text-xs mt-2">
                                         <i className="fa-solid fa-shield-halved mr-1"></i>
                                         Your data is encrypted and secure

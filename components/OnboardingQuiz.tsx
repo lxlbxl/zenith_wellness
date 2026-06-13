@@ -15,7 +15,7 @@ interface OnboardingQuizProps {
 const registerSchema = z.object({
     name: z.string().min(2, "Name is required"),
     email: z.string().email("Invalid email"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    password: z.string().min(10, "Password must be at least 10 characters"),
     persona: z.enum(['lead', 'newbie', 'active', 'veteran']).optional()
 });
 
@@ -67,14 +67,7 @@ const OnboardingQuiz: React.FC<OnboardingQuizProps> = ({ onComplete, onCancel })
         },
         {
             title: 'Welcome to Zenith',
-            description: (
-                <div className="flex items-center gap-2">
-                    <span>Let's start with your name.</span>
-                    <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-[10px] font-bold animate-pulse border border-amber-100 uppercase tracking-tighter">
-                        Offer expires in 14:59
-                    </span>
-                </div>
-            ),
+            description: "Let's start with your name.",
             isValid: !!formData.name && formData.name.length >= 2,
             component: (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -139,7 +132,14 @@ const OnboardingQuiz: React.FC<OnboardingQuizProps> = ({ onComplete, onCancel })
         {
             title: 'Secure Access',
             description: 'Create your metabolic ID.',
-            isValid: !!formData.email && !!formData.password && formData.password.length >= 6,
+            isValid: !!formData.email && !!formData.password && (() => {
+                let score = 0;
+                if (formData.password.length >= 10) score++;
+                if (/\d/.test(formData.password)) score++;
+                if (/[^a-zA-Z0-9]/.test(formData.password)) score++;
+                if (/[A-Z]/.test(formData.password)) score++;
+                return score >= 4;
+            })(),
             component: (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div>
@@ -161,7 +161,68 @@ const OnboardingQuiz: React.FC<OnboardingQuizProps> = ({ onComplete, onCancel })
                             placeholder="••••••••"
                             className="w-full px-6 py-4 bg-stone-50 border border-stone-200 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-lg placeholder-stone-300"
                         />
-                        <p className="text-[10px] text-stone-400 mt-2 ml-1">Must be at least 6 characters.</p>
+                        {formData.password && formData.password.length > 0 && (
+                            <div className="mt-3 space-y-2">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex-1 h-2 bg-stone-100 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full transition-all duration-300 ${
+                                                (() => {
+                                                    let s = 0;
+                                                    if (formData.password.length >= 10) s++;
+                                                    if (/\d/.test(formData.password)) s++;
+                                                    if (/[^a-zA-Z0-9]/.test(formData.password)) s++;
+                                                    if (/[A-Z]/.test(formData.password)) s++;
+                                                    return s <= 1 ? 'bg-red-500' : s <= 3 ? 'bg-amber-500' : 'bg-green-500';
+                                                })()
+                                            }`}
+                                            style={{ width: `${(() => {
+                                                let s = 0;
+                                                if (formData.password.length >= 10) s++;
+                                                if (/\d/.test(formData.password)) s++;
+                                                if (/[^a-zA-Z0-9]/.test(formData.password)) s++;
+                                                if (/[A-Z]/.test(formData.password)) s++;
+                                                return (s / 4) * 100;
+                                            })()}%` }}
+                                        />
+                                    </div>
+                                    <span className={`text-xs font-bold ${
+                                        (() => {
+                                            let s = 0;
+                                            if (formData.password.length >= 10) s++;
+                                            if (/\d/.test(formData.password)) s++;
+                                            if (/[^a-zA-Z0-9]/.test(formData.password)) s++;
+                                            if (/[A-Z]/.test(formData.password)) s++;
+                                            return s <= 1 ? 'text-red-500' : s <= 3 ? 'text-amber-500' : 'text-green-600';
+                                        })()
+                                    }`}>
+                                        {(() => {
+                                            let s = 0;
+                                            if (formData.password.length >= 10) s++;
+                                            if (/\d/.test(formData.password)) s++;
+                                            if (/[^a-zA-Z0-9]/.test(formData.password)) s++;
+                                            if (/[A-Z]/.test(formData.password)) s++;
+                                            return s <= 1 ? 'Weak' : s <= 3 ? 'Medium' : 'Strong';
+                                        })()}
+                                    </span>
+                                </div>
+                                <ul className="space-y-1 text-[10px] text-stone-400">
+                                    <li className={formData.password.length >= 10 ? 'text-green-600' : ''}>
+                                        {formData.password.length >= 10 ? '✓' : '○'} At least 10 characters
+                                    </li>
+                                    <li className={/[A-Z]/.test(formData.password) ? 'text-green-600' : ''}>
+                                        {/[A-Z]/.test(formData.password) ? '✓' : '○'} One uppercase letter
+                                    </li>
+                                    <li className={/\d/.test(formData.password) ? 'text-green-600' : ''}>
+                                        {/\d/.test(formData.password) ? '✓' : '○'} One number
+                                    </li>
+                                    <li className={/[^a-zA-Z0-9]/.test(formData.password) ? 'text-green-600' : ''}>
+                                        {/[^a-zA-Z0-9]/.test(formData.password) ? '✓' : '○'} One special character
+                                    </li>
+                                </ul>
+                            </div>
+                        )}
+                        <p className="text-[10px] text-stone-400 mt-2 ml-1">Must be at least 10 characters with a number, uppercase letter, and special character.</p>
                     </div>
                 </div>
             )

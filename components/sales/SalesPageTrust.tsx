@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { User } from '../../types';
 import SalesAction from './SalesAction';
 import VideoPlayer from '../ui/VideoPlayer';
+import SpotsRemaining from '../ui/SpotsRemaining';
+import CountdownTimer from '../ui/CountdownTimer';
 import { track } from '../../src/analytics';
 
 interface SalesPageTrustProps {
@@ -165,13 +167,22 @@ const SalesPageTrust: React.FC<SalesPageTrustProps> = ({ user, onLogin, onPurcha
             {/* Sticky Mobile CTA Bar */}
             <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 shadow-2xl md:hidden p-4">
                 <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                        <button
-                            onClick={() => { onPurchase?.(); track('purchase', { value: price / 100, currency: 'GBP', program_title: 'Zenith Wellness' }); }}
-                            className="w-full bg-indigo-600 text-white py-3 px-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-indigo-500 transition-all shadow-lg"
-                        >
-                            Get Access Now
-                        </button>
+                    <div className="flex-1 min-w-0 space-y-2">
+                        {cohortId && (
+                            <div className="flex items-center gap-2 text-xs">
+                                <span className="text-slate-500 font-medium">Cohort closes:</span>
+                                <CountdownTimer targetDate={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} size="sm" variant="inline" />
+                            </div>
+                        )}
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => { onPurchase?.(); track('purchase', { value: price / 100, currency: 'GBP', program_title: 'Zenith Wellness' }); }}
+                                className="flex-1 bg-indigo-600 text-white py-3 px-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-indigo-500 transition-all shadow-lg"
+                            >
+                                Get Access Now
+                            </button>
+                            {cohortId && <SpotsRemaining cohortId={cohortId} />}
+                        </div>
                     </div>
                 </div>
             </div>

@@ -31,7 +31,7 @@
                     const grid = container.querySelector('.grid');
                     if (!grid) return;
 
-                    grid.innerHTML = '';
+                    grid.replaceChildren();
 
                     data.slice(0, 3).forEach(t => {
                         const card = document.createElement('div');
@@ -90,7 +90,7 @@
             .then(data => {
                 if (Array.isArray(data) && data.length > 0) {
                     const grid = container.querySelector('.grid') || container;
-                    grid.innerHTML = '';
+                    grid.replaceChildren();
 
                     data.slice(0, 3).forEach(r => {
                         const card = document.createElement('div');

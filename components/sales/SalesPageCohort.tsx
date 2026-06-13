@@ -1,16 +1,32 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from '../../types';
 import SalesRegistrationForm from './SalesRegistrationForm';
+import VideoPlayer from '../ui/VideoPlayer';
+import SpotsRemaining from '../ui/SpotsRemaining';
+import CountdownTimer from '../ui/CountdownTimer';
+import { track } from '../../src/analytics';
 
 interface SalesPageCohortProps {
     onLogin: (user: User) => void;
     onSwitchToLogin?: () => void;
+    onPurchase?: () => void;
 }
 
-const SalesPageCohort: React.FC<SalesPageCohortProps> = ({ onLogin, onSwitchToLogin }) => {
+const SalesPageCohort: React.FC<SalesPageCohortProps> = ({ onLogin, onSwitchToLogin, onPurchase }) => {
+    const [showVSL, setShowVSL] = useState(false);
     return (
         <div className="min-h-screen bg-slate-900 font-sans text-white">
+            {/* VSL Modal */}
+            {showVSL && (
+                <VideoPlayer
+                    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                    duration="14:20"
+                    onClose={() => setShowVSL(false)}
+                    onPurchase={onPurchase}
+                />
+            )}
+
             <div className="container mx-auto px-6 py-8 flex justify-between items-center">
                 <div className="font-black text-2xl tracking-tighter italic">ZENITH SQUAD</div>
                 <div className="flex items-center gap-4">
@@ -55,6 +71,12 @@ const SalesPageCohort: React.FC<SalesPageCohortProps> = ({ onLogin, onSwitchToLo
                             </div>
                         ))}
                     </div>
+                    <button
+                        onClick={() => { setShowVSL(true); track('cta_click', { cta_label: 'Watch Video', variant: 'cohort' }); }}
+                        className="inline-flex items-center gap-3 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold uppercase tracking-wider hover:bg-indigo-500 transition-all shadow-lg text-sm"
+                    >
+                        <i className="fa-solid fa-play"></i> Watch the Walkthrough
+                    </button>
                 </div>
 
                 <div className="order-1 lg:order-2 bg-gradient-to-br from-indigo-900 to-slate-900 p-8 md:p-12 rounded-[3rem] border border-white/10 shadow-2xl relative overflow-hidden">
@@ -102,13 +124,20 @@ const SalesPageCohort: React.FC<SalesPageCohortProps> = ({ onLogin, onSwitchToLo
             {/* Sticky Mobile CTA */}
             <div className="fixed bottom-0 left-0 right-0 z-50 bg-slate-900 border-t border-white/10 shadow-2xl md:hidden p-4">
                 <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                        <button
-                            onClick={() => document.querySelector('main')?.scrollIntoView({ behavior: 'smooth' })}
-                            className="w-full bg-yellow-500 text-black py-3 px-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-yellow-400 transition-all shadow-lg"
-                        >
-                            Join The Squad
-                        </button>
+                    <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex items-center gap-2 text-xs">
+                            <span className="text-slate-400 font-medium">Cohort closes:</span>
+                            <CountdownTimer targetDate={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} size="sm" variant="inline" />
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => document.querySelector('main')?.scrollIntoView({ behavior: 'smooth' })}
+                                className="flex-1 bg-yellow-500 text-black py-3 px-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-yellow-400 transition-all shadow-lg"
+                            >
+                                Join The Squad
+                            </button>
+                            <SpotsRemaining />
+                        </div>
                     </div>
                 </div>
             </div>

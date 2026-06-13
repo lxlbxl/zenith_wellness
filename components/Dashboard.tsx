@@ -14,6 +14,7 @@ import MemberCount from './ui/MemberCount';
 import DailyBriefing from './ui/DailyBriefing';
 import AICoachDemo from './ui/AICoachDemo';
 import VideoPlayer from './ui/VideoPlayer';
+import { track } from '../src/analytics';
 
 interface DashboardProps {
   user: User;
@@ -63,7 +64,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, stats, onMoodCheckIn, onUpd
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
   const [cycleStats, setCycleStats] = useState<CycleStats | null>(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
-  const [checkedItems, setCheckedItems] = useState<boolean[]>([true, false, false, true]);
+  const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false]);
   const [showAllActivity, setShowAllActivity] = useState(false);
   const [downloadingGuide, setDownloadingGuide] = useState(false);
   const [prepGuide, setPrepGuide] = useState<any>(null);
@@ -427,6 +428,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, stats, onMoodCheckIn, onUpd
                           const newChecked = [...checkedItems];
                           newChecked[i] = true;
                           setCheckedItems(newChecked);
+                          if (!checkedItems.some(Boolean)) {
+                            track('day1_complete', { item: item.label });
+                          }
                         }
                       }}
                       className="flex items-center gap-4 p-5 rounded-3xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all cursor-pointer group"

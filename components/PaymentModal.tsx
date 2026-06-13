@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Program } from '../types';
 import { api } from '../services/api';
+import { track } from '../src/analytics';
 import { StripeCheckout } from './payment/StripeCheckout';
 import { PaystackCheckout } from './payment/PaystackCheckout';
 import { FlutterwaveCheckout } from './payment/FlutterwaveCheckout';
@@ -47,6 +48,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ userId, userEmail = '', use
     const [convertedPrice, setConvertedPrice] = useState(price);
     const [step, setStep] = useState<'details' | 'payment' | 'success'>('details');
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        track('checkout_open', { program_id: program.id, program_title: program.title });
+    }, [program.id, program.title]);
+
+    useEffect(() => {
+        if (!loadingConfig && config) {
+            track('checkout_step_payment', { program_id: program.id, gateway: config.gateway });
+        }
+    }, [loadingConfig, config, program.id]);
 
     useEffect(() => {
         const loadConfig = async () => {

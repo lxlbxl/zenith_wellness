@@ -17,6 +17,18 @@ export default defineConfig(({ mode }) => {
       }
     },
     plugins: [react(), tailwindcss()],
+    build: {
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom', 'react-router-dom'],
+            charts: ['recharts'],
+            ui: ['@fortawesome/fontawesome-free'],
+          },
+        },
+      },
+    },
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)

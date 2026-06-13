@@ -69,8 +69,8 @@ const transformCohortToProgram = (cohort: any): Program => ({
 const DEFAULT_STATS: UserStats = {
   focusMinutes: 120, completedTasks: 8,
   moodHistory: [{ date: new Date().toISOString(), mood: 'happy' }],
-  dailyStreak: 5, goals: { focusMinutes: 180, completedTasks: 12, targetMood: 'ecstatic' },
-  purchasedProgramIds: ['prod_1'],
+  dailyStreak: 0, goals: { focusMinutes: 180, completedTasks: 12, targetMood: 'ecstatic' },
+  purchasedProgramIds: [],
   macros: { protein: 45, carbs: 120, fats: 30, calories: 1250 },
   cohortProgress: {}
 };

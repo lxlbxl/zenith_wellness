@@ -1,20 +1,11 @@
-const CACHE_VERSION = 'v1';
-const CACHE_NAME = `zenith-${CACHE_VERSION}`;
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/index.tsx',
-];
+const CACHE_NAME = 'zenith-v2';
 
-// ── Install: pre-cache shell assets ──────────────────────────────────────────
+// ── Install: skip waiting so new SW activates immediately ─────────────────────
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
-  );
   self.skipWaiting();
 });
 
-// ── Activate: claim clients immediately, purge old caches ─────────────────────
+// ── Activate: claim clients, delete old caches ────────────────────────────────
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -27,31 +18,59 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// ── Fetch: network-first with cache fallback ──────────────────────────────────
+// ── Fetch strategy ────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  const url = new URL(request.url);
-
-  // Network-first for same-origin navigations and API calls — freshness matters
   if (request.method !== 'GET') return;
 
+  const url = new URL(request.url);
+
+  // Never cache API calls
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(request).catch(() => new Response('Offline', { status: 503 })));
+    return;
+  }
+
+  // Never cache Tailwind CDN or Google Fonts
+  if (
+    url.hostname === 'cdn.tailwindcss.com' ||
+    url.hostname.endsWith('.googleapis.com') ||
+    url.hostname.endsWith('.gstatic.com')
+  ) {
+    event.respondWith(fetch(request).catch(() => new Response('Offline', { status: 503 })));
+    return;
+  }
+
+  // Cache-first with stale-while-revalidate for built assets
+  if (url.pathname.startsWith('/assets/') && (url.pathname.endsWith('.js') || url.pathname.endsWith('.css'))) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        const fetchPromise = fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        });
+        return cached || fetchPromise;
+      })
+    );
+    return;
+  }
+
+  // Network-first with cache fallback for HTML and non-file-extension URLs
   event.respondWith(
     fetch(request)
       .then((response) => {
-        if (!response.ok) return response;
-
-        // Cache successful same-origin responses for offline use
-        if (url.origin === self.location.origin) {
+        if (response.ok && url.origin === self.location.origin) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         }
         return response;
       })
       .catch(() => {
-        // Fallback: serve from cache on network failure
         return caches.match(request).then((cached) => {
           if (cached) return cached;
-          // For navigation requests, serve the cached shell
           if (request.mode === 'navigate') {
             return caches.match('/') || new Response('Offline', { status: 503 });
           }
@@ -63,7 +82,28 @@ self.addEventListener('fetch', (event) => {
 
 // ── Update notification: reload page when new SW takes control ────────────────
 self.addEventListener('controllerchange', () => {
-  window.location.reload();
+  const banner = document.createElement('div');
+  banner.id = 'sw-update-banner';
+  banner.style.cssText = `
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #4f46e5; color: white;
+    padding: 12px 20px; text-align: center;
+    font-family: 'Outfit', sans-serif; font-size: 14px; z-index: 99999;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.15);
+  `;
+  banner.innerHTML = `
+    <span>New version available</span>
+    <button id="sw-reload-btn" style="
+      background: white; color: #4f46e5; border: none;
+      padding: 6px 16px; border-radius: 6px;
+      font-weight: 600; cursor: pointer; font-family: inherit;
+    ">Update & Reload</button>
+  `;
+  document.body.appendChild(banner);
+  document.getElementById('sw-reload-btn')?.addEventListener('click', () => {
+    window.location.reload();
+  });
 });
 
 // ── Message: respond to SKIP_WAITING from the update banner ──────────────────

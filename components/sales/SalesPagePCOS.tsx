@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from '../../types';
 import SalesAction from './SalesAction';
+import VideoPlayer from '../ui/VideoPlayer';
+import SpotsRemaining from '../ui/SpotsRemaining';
+import CountdownTimer from '../ui/CountdownTimer';
 import MemberCount from '../ui/MemberCount';
 import TestimonialCarousel from '../ui/TestimonialCarousel';
 import ResultsGallery from '../ui/ResultsGallery';
+import { track } from '../../src/analytics';
 
 interface SalesPagePCOSProps {
     user?: User;
@@ -14,8 +18,18 @@ interface SalesPagePCOSProps {
 }
 
 const SalesPagePCOS: React.FC<SalesPagePCOSProps> = ({ user, onLogin, onPurchase, onSwitchToLogin, price = 4900 }) => {
+    const [showVSL, setShowVSL] = useState(false);
     return (
         <div className="min-h-screen bg-rose-50/50 font-sans text-stone-900 font-['Outfit'] pb-20">
+            {/* VSL Modal */}
+            {showVSL && (
+                <VideoPlayer
+                    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                    duration="14:20"
+                    onClose={() => setShowVSL(false)}
+                    onPurchase={onPurchase}
+                />
+            )}
             <nav className="py-6 container mx-auto px-6 flex justify-between items-center">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-rose-200 text-rose-500 rounded-full flex items-center justify-center">
@@ -56,6 +70,12 @@ const SalesPagePCOS: React.FC<SalesPagePCOSProps> = ({ user, onLogin, onPurchase
                             </div>
                         </div>
                     </div>
+                    <button
+                        onClick={() => { setShowVSL(true); track('cta_click', { cta_label: 'Watch Video', variant: 'pcos' }); }}
+                        className="inline-flex items-center gap-3 px-6 py-3 bg-rose-500 text-white rounded-xl font-bold uppercase tracking-wider hover:bg-rose-400 transition-all shadow-lg text-sm"
+                    >
+                        <i className="fa-solid fa-play"></i> Watch the Walkthrough
+                    </button>
                 </div>
 
                 <div className="bg-white p-8 md:p-12 rounded-[3rem] shadow-xl border border-rose-100 relative animate-in slide-in-from-right duration-700">
@@ -125,13 +145,20 @@ const SalesPagePCOS: React.FC<SalesPagePCOSProps> = ({ user, onLogin, onPurchase
             {!user && (
                 <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 shadow-2xl md:hidden p-4">
                     <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                            <button
-                                onClick={onPurchase}
-                                className="w-full bg-rose-500 text-white py-3 px-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-rose-400 transition-all shadow-lg"
-                            >
-                                Begin My Healing Journey
-                            </button>
+                        <div className="flex-1 min-w-0 space-y-2">
+                            <div className="flex items-center gap-2 text-xs">
+                                <span className="text-stone-500 font-medium">Cohort closes:</span>
+                                <CountdownTimer targetDate={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} size="sm" variant="inline" />
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={onPurchase}
+                                    className="flex-1 bg-rose-500 text-white py-3 px-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-rose-400 transition-all shadow-lg"
+                                >
+                                    Begin My Healing Journey
+                                </button>
+                                <SpotsRemaining />
+                            </div>
                         </div>
                     </div>
                 </div>

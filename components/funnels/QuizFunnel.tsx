@@ -156,7 +156,7 @@ const resultProfiles = {
         color: 'from-purple-600 to-pink-600',
         description: 'Your symptoms point to hormonal imbalances that need targeted attention. PCOS, estrogen dominance, or thyroid issues may be at play.',
         recommendation: 'The 21-Day Hormone Reset Protocol',
-        stats: '87% of women with your profile saw improvements in 3 weeks',
+        stats: 'Personalized protocol based on your hormonal profile',
     },
     energy_reclaimer: {
         title: 'The Energy Reclaimer',
@@ -164,7 +164,7 @@ const resultProfiles = {
         color: 'from-amber-500 to-orange-600',
         description: 'Your adrenals are crying for help! Chronic stress and poor sleep have depleted your energy reserves.',
         recommendation: 'The Adrenal Recovery Program',
-        stats: '92% reported better energy within 14 days',
+        stats: 'Recovery plan tailored to your energy patterns',
     },
     cycle_syncer: {
         title: 'The Cycle Syncer',
@@ -172,7 +172,7 @@ const resultProfiles = {
         color: 'from-indigo-600 to-blue-600',
         description: 'Your body is asking you to work WITH your cycle, not against it. Cycle syncing can transform your experience.',
         recommendation: 'The Cycle Syncing Mastery Program',
-        stats: '78% reduced PMS symptoms in one cycle',
+        stats: 'Cycle-synced protocol based on your symptom profile',
     },
     metabolic_reset: {
         title: 'The Metabolic Reset',
@@ -180,7 +180,7 @@ const resultProfiles = {
         color: 'from-red-500 to-rose-600',
         description: 'Your metabolism needs a strategic reset. Weight resistance often stems from hormone-metabolism connections.',
         recommendation: 'The 21-Day Metabolic Reset',
-        stats: '84% broke through their weight plateau',
+        stats: 'Metabolic plan customized to your responses',
     },
 };
 
@@ -286,26 +286,23 @@ const QuizFunnel: React.FC<QuizFunnelProps> = ({ onComplete, onLogin }) => {
         } else {
             setAnswers({ ...answers, [questionId]: value });
             // Auto-advance for single choice
-            setTimeout(() => {
-                if (currentStep < totalQuestions) {
-                    setCurrentStep(currentStep + 1);
-                } else {
-                    const quizResult = calculateResult();
-                    setResult(quizResult);
-                    setCurrentStep(11);
-                }
-            }, 300);
+            setTimeout(() => goToNextStep(), 300);
         }
     };
 
-    const handleMultiNext = () => {
+    const goToNextStep = () => {
         if (currentStep < totalQuestions) {
+            track('quiz_step', { step: currentStep + 1, total: totalQuestions });
             setCurrentStep(currentStep + 1);
         } else {
             const quizResult = calculateResult();
             setResult(quizResult);
             setCurrentStep(11);
         }
+    };
+
+    const handleMultiNext = () => {
+        goToNextStep();
     };
 
     const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -327,13 +324,14 @@ const QuizFunnel: React.FC<QuizFunnelProps> = ({ onComplete, onLogin }) => {
             });
 
             if (response.ok) {
-                track('quiz_completed', { quiz_result: result!.primaryRecommendation, email_provided: !!email });
+                track('lead_captured', { source: 'quiz_funnel', quiz_result: result!.profile });
+                track('quiz_completed', { quiz_result: result!.recommendation, email_provided: !!email });
                 onComplete?.(result!, email);
                 setCurrentStep(13); // Success state
             }
         } catch {
             // Still proceed even if API fails
-            track('quiz_completed', { quiz_result: result!.primaryRecommendation, email_provided: !!email });
+            track('quiz_completed', { quiz_result: result!.recommendation, email_provided: !!email });
             onComplete?.(result!, email);
             setCurrentStep(13);
         } finally {
@@ -371,7 +369,7 @@ const QuizFunnel: React.FC<QuizFunnelProps> = ({ onComplete, onLogin }) => {
 
                         {/* CTA Button */}
                         <button
-                            onClick={() => setCurrentStep(1)}
+                            onClick={() => { track('quiz_start', {}); setCurrentStep(1); }}
                             className="group relative inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl text-xl font-bold shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 transform hover:-translate-y-1 transition-all duration-300"
                         >
                             Take The Free Quiz
