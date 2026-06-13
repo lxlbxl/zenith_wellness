@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
 import { track } from '../../src/analytics';
+import { useExperiment } from '../../src/experiments/useExperiment';
 
 interface SignupFlowProps {
     onComplete: (user: User) => void;
@@ -20,6 +21,7 @@ const getPasswordStrength = (password: string): { score: number; label: string; 
 };
 
 const SignupFlow: React.FC<SignupFlowProps> = ({ onComplete, onSwitchToLogin }) => {
+    const signupExp = useExperiment('signup_steps_v1');
     const [step, setStep] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -145,7 +147,7 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ onComplete, onSwitchToLogin }) 
 
             <div className="w-full max-w-xl relative z-10">
                 {/* Progress bar */}
-                {step > 0 && step < 5 && (
+                {signupExp.config.showProgressBar && step > 0 && step < 5 && (
                     <div className="mb-8">
                         <div className="flex justify-between text-xs font-bold text-white/50 mb-2">
                             <span>Step {step} of 4</span>
@@ -170,12 +172,10 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ onComplete, onSwitchToLogin }) 
                                 <i className="fa-solid fa-mountain-sun"></i>
                             </div>
 
-                            <h1 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">
-                                Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400">Zenith</span>
-                            </h1>
+                            <h1 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight" dangerouslySetInnerHTML={{ __html: signupExp.config.welcomeTitle }} />
 
                             <p className="text-white/60 text-lg mb-8 leading-relaxed max-w-md mx-auto">
-                                You're about to join 2,400+ members optimizing their biology for peak performance and lasting wellness.
+                                {signupExp.config.welcomeSubtitle}
                             </p>
 
                             <div className="grid grid-cols-3 gap-4 mb-10">

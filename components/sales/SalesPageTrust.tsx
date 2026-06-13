@@ -6,6 +6,7 @@ import VideoPlayer from '../ui/VideoPlayer';
 import SpotsRemaining from '../ui/SpotsRemaining';
 import CountdownTimer from '../ui/CountdownTimer';
 import { track } from '../../src/analytics';
+import { useExperiment } from '../../src/experiments/useExperiment';
 
 interface SalesPageTrustProps {
     user?: User;
@@ -18,6 +19,7 @@ interface SalesPageTrustProps {
 
 const SalesPageTrust: React.FC<SalesPageTrustProps> = ({ user, onLogin, onPurchase, onSwitchToLogin, price = 8900, cohortId }) => {
     const [showVSL, setShowVSL] = useState(false);
+    const heroExp = useExperiment('trust_hero_v1');
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
@@ -58,13 +60,8 @@ const SalesPageTrust: React.FC<SalesPageTrustProps> = ({ user, onLogin, onPurcha
                                 <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
                                 System Update 2.0
                             </div>
-                            <h1 className="text-5xl md:text-6xl font-black leading-[1.1] tracking-tight">
-                                Stop Guessing. <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Start Synchronizing.</span>
-                            </h1>
-                            <p className="text-lg text-slate-400 max-w-lg leading-relaxed">
-                                Most productivity plans fail because they fight your biology. Zenith is the first <strong>Human Performance Operating System</strong> that aligns your work with your metabolic, hormonal, and cognitive cycles.
-                            </p>
+                            <h1 className="text-5xl md:text-6xl font-black leading-[1.1] tracking-tight" dangerouslySetInnerHTML={{ __html: heroExp.config.headline }} />
+                            <p className="text-lg text-slate-400 max-w-lg leading-relaxed" dangerouslySetInnerHTML={{ __html: heroExp.config.subhead }} />
 
                             <div className="flex flex-col sm:flex-row gap-4 pt-4">
                                 <button onClick={() => { setShowVSL(true); track('cta_click', { cta_label: 'Watch Video', variant: 'trust' }); }} className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-black uppercase tracking-widest hover:bg-indigo-500 hover:scale-[1.02] transition-all shadow-xl shadow-indigo-900/20">

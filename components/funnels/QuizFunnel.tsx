@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../../types';
 import { track } from '../../src/analytics';
+import { useExperiment } from '../../src/experiments/useExperiment';
 
 interface QuizFunnelProps {
     onComplete?: (result: QuizResult, email: string) => void;
@@ -193,6 +194,7 @@ const QuizFunnel: React.FC<QuizFunnelProps> = ({ onComplete, onLogin }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showExitPopup, setShowExitPopup] = useState(false);
     const [todayQuizCompletions, setTodayQuizCompletions] = useState<number | null>(null);
+    const emailGateExp = useExperiment('quiz_email_gate_v1');
 
     useEffect(() => {
         fetch('/api/stats')
@@ -567,7 +569,15 @@ const QuizFunnel: React.FC<QuizFunnelProps> = ({ onComplete, onLogin }) => {
 
                         {/* CTA */}
                         <button
-                            onClick={() => setCurrentStep(12)}
+                            onClick={() => {
+                                if (emailGateExp.config.showEmailGate) {
+                                    setCurrentStep(12);
+                                } else {
+                                    track('quiz_completed', { quiz_result: result!.recommendation, email_provided: false });
+                                    onComplete?.(result!, '');
+                                    setCurrentStep(13);
+                                }
+                            }}
                             className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl text-xl font-bold shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 transform hover:-translate-y-1 transition-all duration-300 animate-in slide-in-from-bottom duration-500 delay-700"
                         >
                             Get My Free Protocol
@@ -588,6 +598,7 @@ const QuizFunnel: React.FC<QuizFunnelProps> = ({ onComplete, onLogin }) => {
     // Email capture (step 12)
     if (currentStep === 12 && result) {
         const profile = resultProfiles[result.profile];
+        const gateTitle = emailGateExp.config.gateTitle.replace('{profile}', profile.title);
 
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
@@ -596,10 +607,10 @@ const QuizFunnel: React.FC<QuizFunnelProps> = ({ onComplete, onLogin }) => {
                         <div className="text-center mb-8">
                             <div className="text-5xl mb-4">{profile.emoji}</div>
                             <h2 className="text-2xl font-bold mb-2">
-                                Almost there, {profile.title}!
+                                {gateTitle}
                             </h2>
                             <p className="text-purple-200/80">
-                                Enter your details to unlock your personalized protocol.
+                                {emailGateExp.config.gateDescription}
                             </p>
                         </div>
 
@@ -640,11 +651,13 @@ const QuizFunnel: React.FC<QuizFunnelProps> = ({ onComplete, onLogin }) => {
                         </div>
 
                         {/* Urgency */}
-                        <div className="mt-8 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-center animate-pulse">
-                            <p className="text-red-300 text-sm font-medium">
-                                ⏰ This personalized protocol expires in 23:47:12
-                            </p>
-                        </div>
+                        {emailGateExp.config.urgencyEnabled && (
+                            <div className="mt-8 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-center animate-pulse">
+                                <p className="text-red-300 text-sm font-medium">
+                                    ⏰ This personalized protocol expires in 23:47:12
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

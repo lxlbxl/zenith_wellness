@@ -107,6 +107,20 @@ $expectedTables = [
     'cohort_modules',
     'user_module_progress',
     'event_log',
+
+    // Experiment Engine tables
+    'experiments',
+    'experiment_variants',
+    'experiment_assignments',
+    'experiment_events',
+    'experiment_segment_stats',
+    'experiment_decisions',
+
+    // AI Variant Generation tables
+    'variant_briefs',
+    'variant_generations',
+    'variant_candidates',
+    'variant_insights',
 ];
 
 $missing = array_diff($expectedTables, $existingTables);
@@ -206,6 +220,111 @@ echo "  Created:  {$created}\n";
 echo "  Skipped:  {$skipped}\n";
 echo "  Failed:   {$failed}\n";
 echo "═══════════════════════════════════════════\n\n";
+
+// ────────────────────────────────────────────
+// Run experiment engine schema (A.1)
+// ────────────────────────────────────────────
+$expSchemaFile = __DIR__ . '/experiment_engine_schema.sql';
+if (file_exists($expSchemaFile)) {
+    echo "\n─── Experiment Engine Schema ───\n";
+    $expSchema = file_get_contents($expSchemaFile);
+    $expStatements = array_filter(
+        array_map('trim', explode(';', $expSchema)),
+        function ($stmt) {
+            return !empty($stmt) && !str_starts_with($stmt, '--') && !str_starts_with($stmt, 'SELECT ');
+        }
+    );
+
+    foreach ($expStatements as $statement) {
+        $statement .= ';';
+        if (preg_match('/^\s*--/', $statement)) continue;
+        preg_match('/CREATE TABLE.*?(\w+)\s*\(/', $statement, $matches);
+        $tableName = $matches[1] ?? 'unknown';
+
+        if (in_array($tableName, $existingTables)) {
+            continue;
+        }
+
+        try {
+            $db->exec($statement);
+            echo "  [OK] Created: {$tableName}\n";
+            $existingTables[] = $tableName;
+            $created++;
+        } catch (PDOException $e) {
+            echo "  [FAIL] {$tableName}: " . $e->getMessage() . "\n";
+            $failed++;
+        }
+    }
+} else {
+    echo "\n─── Experiment Engine Schema ───\n";
+    echo "  [SKIP] File not found: {$expSchemaFile}\n";
+}
+
+// ────────────────────────────────────────────
+// Experiment events user_id migration (A.3)
+// ────────────────────────────────────────────
+$uidMigrationFile = __DIR__ . '/experiment_events_user_id.sql';
+if (file_exists($uidMigrationFile)) {
+    echo "\n─── Experiment Events user_id ───\n";
+    $uidSchema = file_get_contents($uidMigrationFile);
+    $uidStatements = array_filter(
+        array_map('trim', explode(';', $uidSchema)),
+        fn($stmt) => !empty($stmt) && !str_starts_with($stmt, '--') && !str_starts_with($stmt, 'SELECT ')
+    );
+    foreach ($uidStatements as $statement) {
+        $statement .= ';';
+        try {
+            $db->exec($statement);
+            echo "  [OK] experiment_events.user_id\n";
+            $created++;
+        } catch (PDOException $e) {
+            echo "  [SKIP] experiment_events.user_id: {$e->getMessage()}\n";
+        }
+    }
+}
+
+// ────────────────────────────────────────────
+// Run variant generation schema (B.1)
+// ────────────────────────────────────────────
+$vgSchemaFile = __DIR__ . '/variant_generation_schema.sql';
+if (file_exists($vgSchemaFile)) {
+    echo "\n─── Variant Generation Schema ───\n";
+    $vgSchema = file_get_contents($vgSchemaFile);
+    $vgStatements = array_filter(
+        array_map('trim', explode(';', $vgSchema)),
+        function ($stmt) {
+            return !empty($stmt) && !str_starts_with($stmt, '--') && !str_starts_with($stmt, 'SELECT ')
+                && !str_starts_with($stmt, 'SET ') && !str_starts_with($stmt, 'USE ');
+        }
+    );
+
+    foreach ($vgStatements as $statement) {
+        $statement .= ';';
+        if (preg_match('/^\s*--/', $statement)) continue;
+        if (str_contains($statement, 'FOREIGN_KEY_CHECKS')) continue;
+        preg_match('/CREATE TABLE.*?(\w+)\s*\(/', $statement, $matches);
+        $tableName = $matches[1] ?? 'unknown';
+
+        if (in_array($tableName, $existingTables)) {
+            continue;
+        }
+
+        try {
+            $db->exec($statement);
+            echo "  [OK] Created: {$tableName}\n";
+            $existingTables[] = $tableName;
+            $created++;
+        } catch (PDOException $e) {
+            echo "  [FAIL] {$tableName}: " . $e->getMessage() . "\n";
+            $failed++;
+        }
+    }
+} else {
+    echo "\n─── Variant Generation Schema ───\n";
+    echo "  [SKIP] File not found: {$vgSchemaFile}\n";
+}
+
+echo "\n";
 
 // ────────────────────────────────────────────
 // Run data seeders (settings, AI prompts)

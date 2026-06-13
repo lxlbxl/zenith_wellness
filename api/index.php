@@ -199,6 +199,23 @@ switch ($resource) {
             $c = new LeadsController($db);
             $subAction = $uriParts[$apiIndex + 3] ?? 'list';
             $c->handleRequest($subAction);
+        } elseif ($subResource === 'variants') {
+            require_once __DIR__ . '/controllers/VariantGenerationController.php';
+            $c = new VariantGenerationController($db);
+            $c->handleRequest($uriParts, $apiIndex);
+        } elseif ($subResource === 'experiments') {
+            // Admin A/B experiment endpoints — require auth
+            require_once __DIR__ . '/middleware/AuthMiddleware.php';
+            AuthMiddleware::authenticate();
+
+            $experimentId = $uriParts[$apiIndex + 3] ?? null;
+            $experimentVerb = $uriParts[$apiIndex + 4] ?? null;
+
+            require_once __DIR__ . '/services/BanditEngine.php';
+            require_once __DIR__ . '/services/ExperimentStatsService.php';
+            require_once __DIR__ . '/controllers/ExperimentController.php';
+            $c = new ExperimentController($db);
+            $c->handleAdminRequest($experimentId, $experimentVerb);
         } else {
             require_once __DIR__ . '/controllers/AdminController.php';
             $controller = new AdminController($db);
@@ -334,11 +351,101 @@ switch ($resource) {
         $controller->handleRequest($action, $subId);
         break;
 
+    case 'exp':
+        // A/B Testing Engine endpoints (public, no auth)
+        require_once __DIR__ . '/services/BanditEngine.php';
+        require_once __DIR__ . '/services/ExperimentAssignmentService.php';
+        require_once __DIR__ . '/services/ExperimentTrackingService.php';
+        require_once __DIR__ . '/services/ExperimentStatsService.php';
+        require_once __DIR__ . '/controllers/ExperimentController.php';
+        $controller = new ExperimentController($db);
+        $controller->handleRequest($action);
+        break;
+
     case 'capi':
         // Meta CAPI server-side event proxy — no auth required
         require_once __DIR__ . '/controllers/CAPIController.php';
         $controller = new CAPIController($db);
         $controller->handleRequest();
+        break;
+
+    case 'variant-generator':
+        require_once __DIR__ . '/services/VariantGeneratorService.php';
+        $service = new VariantGeneratorService($db);
+
+        if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'surfaces') {
+            echo json_encode($service->listSurfaces());
+            break;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'brief') {
+            $surface = $uriParts[$apiIndex + 3] ?? null;
+            if (!$surface) {
+                http_response_code(400);
+                echo json_encode(["error" => "Surface parameter required"]);
+                break;
+            }
+            $brief = $service->getBrief($surface);
+            if (!$brief) {
+                http_response_code(404);
+                echo json_encode(["error" => "Brief not found for surface: {$surface}"]);
+                break;
+            }
+            echo json_encode($brief);
+            break;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'generate') {
+            $input = json_decode(file_get_contents("php://input"), true);
+            if (!$input || empty($input['surface'])) {
+                http_response_code(400);
+                echo json_encode(["error" => "Missing required field: surface"]);
+                break;
+            }
+            $result = $service->generate(
+                $input['surface'],
+                $input['experimentId'] ?? null,
+                $input['segmentKey'] ?? null,
+                $input['candidateCount'] ?? 3
+            );
+            echo json_encode($result);
+            break;
+        }
+
+        http_response_code(404);
+        echo json_encode(["message" => "Variant generator action not found"]);
+        break;
+
+    case 'variant-safety':
+        require_once __DIR__ . '/services/VariantSafetyService.php';
+        $safetyService = new VariantSafetyService($db);
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'check') {
+            $input = json_decode(file_get_contents("php://input"), true);
+            if (!$input || empty($input['candidateId'])) {
+                http_response_code(400);
+                echo json_encode(["error" => "Missing required field: candidateId"]);
+                break;
+            }
+            $result = $safetyService->check($input['candidateId']);
+            echo json_encode($result);
+            break;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'deterministic-only') {
+            $input = json_decode(file_get_contents("php://input"), true);
+            if (!$input || empty($input['candidateId'])) {
+                http_response_code(400);
+                echo json_encode(["error" => "Missing required field: candidateId"]);
+                break;
+            }
+            $result = $safetyService->deterministicOnly($input['candidateId']);
+            echo json_encode($result);
+            break;
+        }
+
+        http_response_code(404);
+        echo json_encode(["message" => "Safety action not found"]);
         break;
 
     case 'stats':

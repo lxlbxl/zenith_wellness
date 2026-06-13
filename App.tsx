@@ -36,6 +36,7 @@ import QuizFunnel from './components/funnels/QuizFunnel';
 import ChallengeLanding from './components/funnels/ChallengeLanding';
 import SignupFlow from './components/funnels/SignupFlow';
 import { analytics } from './src/analytics';
+import { ExperimentProvider } from './src/experiments/ExperimentProvider';
 
 const FALLBACK_PROGRAMS: Program[] = [
   {
@@ -340,18 +341,20 @@ const App: React.FC = () => {
   }
 
   return (
-    <Routes>
-      {/* Public landing pages */}
-      <Route path="/" element={!user ? <LandingPage /> : <Navigate to="/app/dashboard" replace />} />
+    <ExperimentProvider>
+      <Routes>
+        {/* Public landing pages */}
+        <Route path="/" element={!user ? <LandingPage /> : <Navigate to="/app/dashboard" replace />} />
 
-      {/* Auth pages */}
-      <Route path="/login" element={!user ? <Login onLogin={() => {}} onSwitchToSales={() => {}} /> : <Navigate to="/app/dashboard" replace />} />
-      <Route path="/quiz" element={!user ? <QuizFunnel onComplete={() => {}} onLogin={() => {}} /> : <Navigate to="/app/dashboard" replace />} />
-      <Route path="/signup" element={!user ? <SignupFlow onComplete={() => {}} onSwitchToLogin={() => {}} /> : <Navigate to="/app/dashboard" replace />} />
+        {/* Auth pages */}
+        <Route path="/login" element={!user ? <Login onLogin={() => {}} onSwitchToSales={() => {}} /> : <Navigate to="/app/dashboard" replace />} />
+        <Route path="/quiz" element={!user ? <QuizFunnel onComplete={() => {}} onLogin={() => {}} /> : <Navigate to="/app/dashboard" replace />} />
+        <Route path="/signup" element={!user ? <SignupFlow onComplete={() => {}} onSwitchToLogin={() => {}} /> : <Navigate to="/app/dashboard" replace />} />
 
-      {/* Protected /app/* routes */}
-      <Route path="/app/*" element={<ProtectedRoute><AppShell /></ProtectedRoute>} />
-    </Routes>
+        {/* Protected /app/* routes */}
+        <Route path="/app/*" element={<ProtectedRoute><AppShell /></ProtectedRoute>} />
+      </Routes>
+    </ExperimentProvider>
   );
 };
 

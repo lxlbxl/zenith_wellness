@@ -11,6 +11,7 @@
  */
 
 import { api } from '../services/api';
+import { getVisitorId } from './experiments/visitorId';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -90,6 +91,28 @@ async function sendToCAPI(
   }
 }
 
+// ─── Visitor ID (zen_vid) ────────────────────────────────────────────────────
+// Delegated to src/experiments/visitorId for cookie + localStorage dual-write.
+
+// ─── Experiment Engine ────────────────────────────────────────────────────────
+
+const EXP_EVENT_ENDPOINT = '/api/exp/event';
+
+async function sendToExperimentEngine(
+  eventName: string,
+  properties?: Record<string, string | number | boolean>
+) {
+  try {
+    await api.post(EXP_EVENT_ENDPOINT, {
+      visitor_id: getVisitorId(),
+      event_type: eventName,
+      properties: properties ?? {},
+    });
+  } catch (err) {
+    console.debug('[Experiment] Failed to send event:', err);
+  }
+}
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
@@ -109,6 +132,8 @@ export function track(
   sendToMetaPixel(eventName, properties);
   // CAPI is fire-and-forget to avoid blocking the user-facing flow
   void sendToCAPI(eventName, properties);
+  // Experiment engine event tracking (fire-and-forget)
+  void sendToExperimentEngine(eventName, properties);
 }
 
 /**

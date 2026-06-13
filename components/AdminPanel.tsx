@@ -10,8 +10,9 @@ import AdminAnalytics from './admin/AdminAnalytics';
 import AdminActivity from './admin/AdminActivity';
 import { CohortManagement } from './admin/CohortManagement';
 import AdminCompliance from './admin/AdminCompliance';
+import VariantStudio from './admin/VariantStudio';
 
-type AdminTab = 'overview' | 'users' | 'cohorts' | 'finance' | 'leads' | 'content' | 'settings' | 'analytics' | 'compliance' | 'activity';
+type AdminTab = 'overview' | 'users' | 'cohorts' | 'finance' | 'leads' | 'content' | 'settings' | 'analytics' | 'variants' | 'compliance' | 'activity';
 
 const AdminPanel: React.FC = () => {
     const [activeTab, setActiveTab] = useState<AdminTab>('overview');
@@ -25,6 +26,7 @@ const AdminPanel: React.FC = () => {
         { id: 'finance', label: 'Finance', icon: 'fa-sack-dollar' },
         { id: 'leads', label: 'Leads', icon: 'fa-funnel-dollar' },
         { id: 'content', label: 'Content & AI', icon: 'fa-layer-group' },
+        { id: 'variants', label: 'Variants (AI)', icon: 'fa-wand-magic-sparkles' },
         { id: 'compliance', label: 'Compliance', icon: 'fa-shield-halved' },
         { id: 'settings', label: 'Settings', icon: 'fa-gear' },
     ];
@@ -71,6 +73,7 @@ const AdminPanel: React.FC = () => {
                     {activeTab === 'leads' && <AdminLeads />}
                     {activeTab === 'content' && <AdminContent />}
                     {activeTab === 'compliance' && <AdminCompliance />}
+                    {activeTab === 'variants' && <VariantStudio />}
                     {activeTab === 'settings' && <AdminSettings />}
                 </main>
             </div>

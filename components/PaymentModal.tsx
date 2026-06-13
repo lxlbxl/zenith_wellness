@@ -7,6 +7,7 @@ import { PaystackCheckout } from './payment/PaystackCheckout';
 import { FlutterwaveCheckout } from './payment/FlutterwaveCheckout';
 import CountdownTimer from './ui/CountdownTimer';
 import TrustBadges from './ui/TrustBadges';
+import { useExperiment } from '../src/experiments/useExperiment';
 
 interface PaymentModalProps {
     userId: string;
@@ -48,6 +49,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ userId, userEmail = '', use
     const [convertedPrice, setConvertedPrice] = useState(price);
     const [step, setStep] = useState<'details' | 'payment' | 'success'>('details');
     const [error, setError] = useState<string | null>(null);
+    const checkoutLayout = useExperiment('checkout_layout_v1');
+    const pricingAnchor = useExperiment('pricing_anchor_v1');
+    const orderBumpCopy = useExperiment('order_bump_copy_v1');
 
     useEffect(() => {
         track('checkout_open', { program_id: program.id, program_title: program.title });
@@ -138,6 +142,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ userId, userEmail = '', use
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-in fade-in duration-300">
             <div className="bg-white w-full max-w-4xl rounded-[3rem] shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
                 {/* Left Side: Summary */}
+                {checkoutLayout.config.showSummaryLeft && (
                 <div className="w-full md:w-2/5 bg-slate-50 p-10 border-r border-slate-100 flex flex-col">
                     <div className="mb-8">
                         <span className="text-[10px] font-black uppercase text-indigo-500 tracking-widest block mb-2">{program.category} Protocol</span>
@@ -152,21 +157,25 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ userId, userEmail = '', use
                     </div>
 
                     <div className="flex-1 space-y-4">
-                        <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-100">
-                            <img src={program.image} className="w-16 h-16 rounded-xl object-cover" />
-                            <div>
-                                <p className="text-xs font-bold text-slate-900">Full Access Pass</p>
-                                <p className="text-[10px] text-slate-500">Video + Community + Smart coaching</p>
+                        {orderBumpCopy.config.showBump && (
+                            <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-100">
+                                <img src={program.image} className="w-16 h-16 rounded-xl object-cover" />
+                                <div>
+                                    <p className="text-xs font-bold text-slate-900">{orderBumpCopy.config.bumpTitle}</p>
+                                    <p className="text-[10px] text-slate-500">{orderBumpCopy.config.bumpDescription}</p>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
-                        <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-50 italic text-[10px] text-slate-600">
-                            "This protocol completely changed how I approach my cycle. Worth every penny."
-                            <div className="mt-1 font-bold not-italic text-slate-900">— Sarah J.</div>
-                        </div>
+                        {checkoutLayout.config.showTestimonial && (
+                            <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-50 italic text-[10px] text-slate-600">
+                                "This protocol completely changed how I approach my cycle. Worth every penny."
+                                <div className="mt-1 font-bold not-italic text-slate-900">— Sarah J.</div>
+                            </div>
+                        )}
 
                         {/* Currency Selector */}
-                        {config && config.currencies && config.currencies.length > 1 && (
+                        {checkoutLayout.config.showCurrencySelector && config && config.currencies && config.currencies.length > 1 && (
                             <div className="space-y-2 py-2">
                                 <label className="text-[10px] font-bold text-slate-500 uppercase">Currency</label>
                                 <select
@@ -190,10 +199,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ userId, userEmail = '', use
                                 <span className="text-slate-500">Subtotal</span>
                                 <span className="font-bold text-slate-900">{formatPrice(finalPrice, currency)}</span>
                             </div>
-                            {discount > 0 && (
+                            {pricingAnchor.config.showDiscount && discount > 0 && (
                                 <div className="flex justify-between text-sm text-emerald-600">
-                                    <span>Discount ({discount}%)</span>
-                                    <span>-{formatPrice(Math.floor(convertedPrice * discount / 100), currency)}</span>
+                                    <span>Discount ({pricingAnchor.config.discountPercent}%)</span>
+                                    <span>-{formatPrice(Math.floor(convertedPrice * pricingAnchor.config.discountPercent / 100), currency)}</span>
                                 </div>
                             )}
                             <div className="flex justify-between text-lg font-black pt-2">
@@ -207,8 +216,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ userId, userEmail = '', use
                                 <i className="fa-solid fa-shield-halved"></i>
                             </div>
                             <div>
-                                <p className="text-[10px] font-black uppercase text-emerald-800 tracking-widest">Ironclad Protection</p>
-                                <p className="text-[9px] text-emerald-600 font-bold leading-tight">100% Refund if you don't see results in 30 days.</p>
+                                <p className="text-[10px] font-black uppercase text-emerald-800 tracking-widest">{orderBumpCopy.config.guaranteeText}</p>
+                                <p className="text-[9px] text-emerald-600 font-bold leading-tight">{orderBumpCopy.config.guaranteeSubtext}</p>
                             </div>
                         </div>
                     </div>
@@ -220,9 +229,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ userId, userEmail = '', use
                         <p className="text-[10px] text-slate-400 mt-2 text-center">By purchasing, you agree to the Terms of Service.</p>
                     </div>
                 </div>
+                )}
 
                 {/* Right Side: Payment Form */}
-                <div className="w-full md:w-3/5 p-10 flex flex-col overflow-y-auto">
+                <div className={`w-full ${checkoutLayout.config.showSummaryLeft ? 'md:w-3/5' : 'md:w-full'} p-10 flex flex-col overflow-y-auto`}>
                     <div className="flex justify-between items-center mb-8">
                         <h3 className="text-xl font-black text-slate-900">Checkout</h3>
                         <button onClick={onClose} className="w-8 h-8 flex items-center justify-center bg-slate-50 rounded-full hover:bg-slate-100">

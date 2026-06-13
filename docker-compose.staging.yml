@@ -28,6 +28,12 @@ services:
     depends_on:
       zenith-mysql:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
     environment:
       APP_ENV: staging
       APP_URL: ${APP_URL:-https://staging.zenithwellness.club}
@@ -56,6 +62,8 @@ services:
     restart: unless-stopped
     depends_on:
       - zenith-backend
+    volumes:
+      - ./deploy/nginx-frontend.staging.conf:/etc/nginx/conf.d/default.conf
     networks:
       - zenith-network
       - coolify
