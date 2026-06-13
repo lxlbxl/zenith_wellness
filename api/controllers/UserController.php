@@ -12,6 +12,12 @@ class UserController
     {
         $method = $_SERVER['REQUEST_METHOD'];
 
+        // GET /api/users/count — public count of users with role "user"
+        if ($userId === 'count' && $resource === null && $method === 'GET') {
+            $this->getUserCount();
+            return;
+        }
+
         // Validate userId
         if (!$userId) {
             http_response_code(400);
@@ -478,6 +484,18 @@ class UserController
         } else {
             http_response_code(503);
             echo json_encode(["message" => "Failed to save chat"]);
+        }
+    }
+
+    // ==================== USER COUNT ====================
+    public function getUserCount()
+    {
+        try {
+            $stmt = $this->db->query("SELECT COUNT(*) FROM users WHERE role = 'user'");
+            echo json_encode((int) $stmt->fetchColumn());
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(0);
         }
     }
 }

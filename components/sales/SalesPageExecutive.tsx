@@ -9,17 +9,18 @@ interface SalesPageExecutiveProps {
     user?: User;
     onLogin?: (user: User) => void;
     onPurchase?: () => void;
+    onSwitchToLogin?: () => void;
     price?: number; // Price in cents from cohort settings
 }
 
-const SalesPageExecutive: React.FC<SalesPageExecutiveProps> = ({ user, onLogin, onPurchase, price = 12900 }) => {
+const SalesPageExecutive: React.FC<SalesPageExecutiveProps> = ({ user, onLogin, onPurchase, onSwitchToLogin, price = 12900 }) => {
     return (
         <div className="min-h-screen bg-black text-white font-sans antialiased selection:bg-[#D4AF37] selection:text-black pb-20">
             <nav className="border-b border-white/10 py-6">
                 <div className="container mx-auto px-6 flex justify-between items-center">
                     <span className="font-bold text-2xl tracking-tight">ZENITH<span className="text-[#D4AF37]">.EXEC</span></span>
                     {!user && (
-                        <button className="text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">
+                        <button onClick={onSwitchToLogin} className="text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">
                             Client Portal Login
                         </button>
                     )}
@@ -111,6 +112,21 @@ const SalesPageExecutive: React.FC<SalesPageExecutiveProps> = ({ user, onLogin, 
                     </div>
                 </div>
             </section>
+            {/* Sticky Mobile CTA */}
+            {!user && (
+                <div className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-900 border-t border-white/10 shadow-2xl md:hidden p-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                            <button
+                                onClick={onPurchase}
+                                className="w-full bg-[#D4AF37] text-black py-3 px-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-[#e8c84a] transition-all shadow-lg"
+                            >
+                                Initiate Application
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

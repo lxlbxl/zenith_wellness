@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../../types';
+import { track } from '../../src/analytics';
 
 interface ChallengeLandingProps {
     onRegister?: (user: User) => void;
@@ -93,6 +94,8 @@ const ChallengeLanding: React.FC<ChallengeLandingProps> = ({ onRegister, onLogin
 
             if (response.ok) {
                 const data = await response.json();
+                track('sign_up', { method: 'email', source: '21day_challenge' });
+                track('challenge_landing');
                 onRegister?.(data.user);
             }
         } catch {
@@ -377,7 +380,7 @@ const ChallengeLanding: React.FC<ChallengeLandingProps> = ({ onRegister, onLogin
                                 </ul>
 
                                 <button
-                                    onClick={() => setShowPaymentModal(true)}
+                                    onClick={() => { setShowPaymentModal(true); track('purchase', { value: 8900, currency: 'NGN', program_title: '21-Day Challenge' }); }}
                                     className="w-full py-5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-emerald-500/30 transition-all"
                                 >
                                     Get Full Access Now

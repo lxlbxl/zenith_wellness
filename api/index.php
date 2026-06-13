@@ -79,6 +79,11 @@ if (in_array($resource, $sensitiveEndpoints)) {
     $rateLimiter->handle();
 }
 
+// Strict rate limit for lead capture: 5 requests per IP per hour
+if ($resource === 'leads' && $action === 'capture' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $rateLimiter->handle(5, 3600, 'leads_capture');
+}
+
 // Skip OPTIONS (already handled by CORS middleware)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
@@ -142,9 +147,15 @@ switch ($resource) {
         break;
 
     case 'payment':
-        require_once __DIR__ . '/controllers/PaymentController.php';
-        $controller = new PaymentController($db);
-        $controller->process($action);
+        if ($action === 'quote') {
+            require_once __DIR__ . '/controllers/PaymentQuoteController.php';
+            $controller = new PaymentQuoteController($db);
+            $controller->createQuote();
+        } else {
+            require_once __DIR__ . '/controllers/PaymentController.php';
+            $controller = new PaymentController($db);
+            $controller->process($action);
+        }
         break;
 
     case 'webhooks':
@@ -321,6 +332,39 @@ switch ($resource) {
         $controller = new ActivityController($db);
         $subId = $uriParts[$apiIndex + 3] ?? null;
         $controller->handleRequest($action, $subId);
+        break;
+
+    case 'capi':
+        // Meta CAPI server-side event proxy — no auth required
+        require_once __DIR__ . '/controllers/CAPIController.php';
+        $controller = new CAPIController($db);
+        $controller->handleRequest();
+        break;
+
+    case 'stats':
+        // Public stats endpoint — no auth required
+        try {
+            // Total enrolled users
+            $stmt = $db->query("SELECT COUNT(*) FROM cohort_enrollments");
+            $totalEnrolled = (int) $stmt->fetchColumn();
+
+            // Today's enrollments
+            $stmt = $db->query("SELECT COUNT(*) FROM cohort_enrollments WHERE DATE(enrolled_at) = CURDATE()");
+            $todayEnrollments = (int) $stmt->fetchColumn();
+
+            // Today's quiz completions
+            $stmt = $db->query("SELECT COUNT(*) FROM leads WHERE DATE(created_at) = CURDATE() AND source = 'quiz_funnel'");
+            $todayQuizCompletions = (int) $stmt->fetchColumn();
+
+            echo json_encode([
+                'total_enrolled_users' => $totalEnrolled,
+                'today_enrollments' => $todayEnrollments,
+                'today_quiz_completions' => $todayQuizCompletions,
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to fetch stats']);
+        }
         break;
 
     default:

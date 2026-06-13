@@ -1,28 +1,36 @@
 import React, { useEffect, useState } from 'react';
 
 interface SpotsRemainingProps {
-    cohortId?: string; // Optional, if fetching from API
-    initialTotal?: number;
-    initialTaken?: number;
+    cohortId?: string; // Optional, if fetching specific cohort
 }
 
-const SpotsRemaining: React.FC<SpotsRemainingProps> = ({ cohortId, initialTotal = 50, initialTaken = 35 }) => {
-    const [stats, setStats] = useState({ total: initialTotal, taken: initialTaken });
-    const [loading, setLoading] = useState(false);
+const SpotsRemaining: React.FC<SpotsRemainingProps> = ({ cohortId }) => {
+    const [stats, setStats] = useState<{ total: number; taken: number } | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (cohortId) {
-            setLoading(true);
-            fetch(`/api/cohorts_spots.php?id=${cohortId}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        setStats({ total: data.data.total, taken: data.data.taken });
-                    }
-                })
-                .finally(() => setLoading(false));
-        }
+        setLoading(true);
+        const params = cohortId ? `?id=${cohortId}` : '';
+        fetch(`/api/cohorts_spots.php${params}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    setStats({ total: data.data.total, taken: data.data.taken });
+                }
+            })
+            .finally(() => setLoading(false));
     }, [cohortId]);
+
+    if (loading) {
+        return (
+            <div className="flex flex-col gap-1 w-full max-w-[200px] animate-pulse">
+                <div className="h-3 w-24 bg-slate-200 rounded-full" />
+                <div className="h-2 w-full bg-slate-100 rounded-full" />
+            </div>
+        );
+    }
+
+    if (!stats) return null;
 
     const remaining = stats.total - stats.taken;
     const percentFull = (stats.taken / stats.total) * 100;

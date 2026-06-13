@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,6 +25,18 @@ const OnboardingQuiz: React.FC<OnboardingQuizProps> = ({ onComplete, onCancel })
     const [formData, setFormData] = useState<Partial<RegisterInputs>>({
         persona: 'newbie'
     });
+    const [todayEnrollments, setTodayEnrollments] = useState<number | null>(null);
+
+    useEffect(() => {
+        fetch('/api/stats')
+            .then(res => res.json())
+            .then(data => {
+                if (data.today_enrollments && data.today_enrollments > 0) {
+                    setTodayEnrollments(data.today_enrollments);
+                }
+            })
+            .catch(() => {});
+    }, []);
 
     const steps = [
         {
@@ -43,7 +55,7 @@ const OnboardingQuiz: React.FC<OnboardingQuizProps> = ({ onComplete, onCancel })
                     <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl">
                         <p className="text-sm text-amber-800 font-medium">
                             <i className="fa-solid fa-fire mr-2"></i>
-                            <strong>High Demand:</strong> 128 people started their journey today.
+                            <strong>High Demand:</strong> {todayEnrollments !== null ? `${todayEnrollments.toLocaleString()} people started their journey today` : 'Spots filling fast — start your journey now'}.
                         </p>
                     </div>
 

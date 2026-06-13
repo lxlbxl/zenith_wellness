@@ -39,12 +39,22 @@ class LeadsController
             $this->getLeads();
         } elseif ($action === 'status' && $method === 'POST') {
             $this->updateStatus();
+        } elseif ($action === 'count' && $method === 'GET') {
+            $this->getCount();
         }
     }
 
     private function captureLead()
     {
         $data = json_decode(file_get_contents("php://input"), true);
+
+        // Honeypot: if website field is present and non-empty, silently reject
+        if (!empty($data['website'])) {
+            http_response_code(200);
+            echo json_encode(["message" => "Lead captured"]);
+            return;
+        }
+
         if (empty($data['email'])) {
             http_response_code(400);
             return;
@@ -76,6 +86,24 @@ class LeadsController
         $stmt = $this->db->prepare("UPDATE leads SET status = :status WHERE id = :id");
         $stmt->execute([':status' => $data['status'], ':id' => $data['id']]);
         echo json_encode(["message" => "Status updated"]);
+    }
+
+    private function getCount()
+    {
+        $source = $_GET['source'] ?? null;
+
+        try {
+            if ($source) {
+                $stmt = $this->db->prepare("SELECT COUNT(*) FROM leads WHERE source = :source");
+                $stmt->execute([':source' => $source]);
+            } else {
+                $stmt = $this->db->query("SELECT COUNT(*) FROM leads");
+            }
+            echo json_encode((int) $stmt->fetchColumn());
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(0);
+        }
     }
 }
 ?>

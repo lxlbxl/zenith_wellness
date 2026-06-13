@@ -1,7 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from '../../types';
 import SalesAction from './SalesAction';
+import VideoPlayer from '../ui/VideoPlayer';
+import { track } from '../../src/analytics';
 
 interface SalesPageTrustProps {
     user?: User;
@@ -9,11 +11,24 @@ interface SalesPageTrustProps {
     onPurchase?: () => void;
     onSwitchToLogin?: () => void;
     price?: number; // Price in cents from cohort settings
+    cohortId?: string;
 }
 
-const SalesPageTrust: React.FC<SalesPageTrustProps> = ({ user, onLogin, onPurchase, onSwitchToLogin, price = 8900 }) => {
+const SalesPageTrust: React.FC<SalesPageTrustProps> = ({ user, onLogin, onPurchase, onSwitchToLogin, price = 8900, cohortId }) => {
+    const [showVSL, setShowVSL] = useState(false);
+
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
+            {/* VSL Modal */}
+            {showVSL && (
+                <VideoPlayer
+                    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                    duration="14:20"
+                    onClose={() => setShowVSL(false)}
+                    onPurchase={onPurchase}
+                />
+            )}
+
             {/* Hero / VSL Section */}
             <section className="bg-slate-900 text-white pt-12 pb-24 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-[50rem] h-[50rem] bg-indigo-600/20 rounded-full blur-3xl -mr-20 -mt-20"></div>
@@ -50,7 +65,7 @@ const SalesPageTrust: React.FC<SalesPageTrustProps> = ({ user, onLogin, onPurcha
                             </p>
 
                             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                                <button className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-black uppercase tracking-widest hover:bg-indigo-500 hover:scale-[1.02] transition-all shadow-xl shadow-indigo-900/20">
+                                <button onClick={() => { setShowVSL(true); track('cta_click', { cta_label: 'Watch Video', variant: 'trust' }); }} className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-black uppercase tracking-widest hover:bg-indigo-500 hover:scale-[1.02] transition-all shadow-xl shadow-indigo-900/20">
                                     Watch the Walkthrough
                                 </button>
                                 <div className="flex items-center gap-4 px-4">
@@ -67,7 +82,7 @@ const SalesPageTrust: React.FC<SalesPageTrustProps> = ({ user, onLogin, onPurcha
                         </div>
 
                         {/* The VSL Placeholder */}
-                        <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-2xl overflow-hidden aspect-video relative group cursor-pointer">
+                        <div onClick={() => setShowVSL(true)} className="bg-slate-800 rounded-2xl border border-slate-700 shadow-2xl overflow-hidden aspect-video relative group cursor-pointer">
                             <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all flex items-center justify-center">
                                 <div className="w-20 h-20 bg-indigo-600/90 text-white rounded-full flex items-center justify-center pl-1 shadow-2xl group-hover:scale-110 transition-transform">
                                     <i className="fa-solid fa-play text-2xl"></i>
@@ -147,6 +162,19 @@ const SalesPageTrust: React.FC<SalesPageTrustProps> = ({ user, onLogin, onPurcha
                     </div>
                 </div>
             </section>
+            {/* Sticky Mobile CTA Bar */}
+            <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 shadow-2xl md:hidden p-4">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                        <button
+                            onClick={() => { onPurchase?.(); track('purchase', { value: price / 100, currency: 'GBP', program_title: 'Zenith Wellness' }); }}
+                            className="w-full bg-indigo-600 text-white py-3 px-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-indigo-500 transition-all shadow-lg"
+                        >
+                            Get Access Now
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

@@ -149,6 +149,22 @@ const SalesPageBioSync: React.FC<SalesPageBioSyncProps> = ({ user, onLogin, onPu
                     </div>
                 </div>
             </section>
+
+            {/* Sticky Mobile CTA */}
+            {!user && (
+                <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 shadow-2xl md:hidden p-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                            <button
+                                onClick={() => setShowForm(true)}
+                                className="w-full bg-emerald-600 text-white py-3 px-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-emerald-500 transition-all shadow-lg"
+                            >
+                                Take the Quiz
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

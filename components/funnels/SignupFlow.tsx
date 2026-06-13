@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
+import { track } from '../../src/analytics';
 
 interface SignupFlowProps {
     onComplete: (user: User) => void;
@@ -80,6 +81,13 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ onComplete, onSwitchToLogin }) 
 
             // Move to success step
             setStep(5);
+
+            // Track signup
+            track('sign_up', {
+                method: 'email',
+                focus: formData.primaryFocus,
+                goals: formData.goals.join(','),
+            });
 
             // After 2 seconds, complete the flow
             setTimeout(() => {

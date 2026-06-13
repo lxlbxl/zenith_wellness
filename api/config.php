@@ -61,6 +61,7 @@ define('SALES_ENABLED', filter_var(getenv('SALES_ENABLED') ?: false, FILTER_VALI
 // ===================
 define('ACTIVE_PAYMENT_GATEWAY', getenv('ACTIVE_PAYMENT_GATEWAY') ?: 'stripe');
 define('PAYMENT_CURRENCY', getenv('PAYMENT_CURRENCY') ?: 'USD');
+define('PAYMENT_QUOTE_SECRET', getenv('PAYMENT_QUOTE_SECRET') ?: 'dev-quote-secret-change-in-production');
 
 // Stripe
 define('STRIPE_PUBLIC_KEY', getenv('STRIPE_PUBLIC_KEY') ?: '');

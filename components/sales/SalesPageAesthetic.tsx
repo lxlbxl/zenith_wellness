@@ -8,16 +8,17 @@ interface SalesPageAestheticProps {
     user?: User;
     onLogin?: (user: User) => void;
     onPurchase?: () => void;
+    onSwitchToLogin?: () => void;
     price?: number; // Price in cents from cohort settings
 }
 
-const SalesPageAesthetic: React.FC<SalesPageAestheticProps> = ({ user, onLogin, onPurchase, price = 2900 }) => {
+const SalesPageAesthetic: React.FC<SalesPageAestheticProps> = ({ user, onLogin, onPurchase, onSwitchToLogin, price = 2900 }) => {
     return (
         <div className="min-h-screen bg-[#F7F5F0] text-[#2D2D2D] font-sans selection:bg-[#B2C5B2] selection:text-white pb-20 font-['DM_Sans']">
             <div className="fixed top-0 w-full p-6 z-40 flex justify-between uppercase text-xs font-bold tracking-widest mix-blend-multiply pointer-events-none">
                 <div>Est. 2026</div>
                 <div>Zenith<span className="font-serif italic text-lg lowercase tracking-normal mx-1">wellness</span>Club</div>
-                <div className="pointer-events-auto cursor-pointer">{!user ? 'Login' : ''}</div>
+                <button onClick={onSwitchToLogin} className="pointer-events-auto cursor-pointer">{!user ? 'Login' : ''}</button>
             </div>
 
             <main className="pt-32 pb-20 px-6 container mx-auto max-w-xl text-center">
@@ -74,6 +75,22 @@ const SalesPageAesthetic: React.FC<SalesPageAestheticProps> = ({ user, onLogin, 
             <footer className="text-center pb-12 text-[10px] uppercase font-bold tracking-widest text-gray-400">
                 Designed in Paris • Coded in Silicon Valley
             </footer>
+
+            {/* Sticky Mobile CTA */}
+            {!user && (
+                <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 shadow-2xl md:hidden p-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                            <button
+                                onClick={onPurchase}
+                                className="w-full bg-[#2D2D2D] text-white py-3 px-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-black transition-all shadow-lg"
+                            >
+                                Get Access
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

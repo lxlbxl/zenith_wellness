@@ -7,6 +7,7 @@ import { api } from '../services/api';
 import { User, UserPersona } from '../types';
 import PasswordReset from './PasswordReset';
 import OnboardingQuiz from './OnboardingQuiz';
+import { track } from '../src/analytics';
 
 interface LoginProps {
   onLogin: (user: User) => void;
@@ -36,6 +37,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToSales }) => {
       if (res.token) {
         api.setToken(res.token);
         db.setSession(res.user);
+        track('login', { method: 'email' });
         onLogin(res.user);
       }
     } catch (err: any) {

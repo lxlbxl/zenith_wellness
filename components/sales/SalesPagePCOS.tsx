@@ -9,10 +9,11 @@ interface SalesPagePCOSProps {
     user?: User;
     onLogin?: (user: User) => void;
     onPurchase?: () => void;
+    onSwitchToLogin?: () => void;
     price?: number; // Price in cents from cohort settings
 }
 
-const SalesPagePCOS: React.FC<SalesPagePCOSProps> = ({ user, onLogin, onPurchase, price = 4900 }) => {
+const SalesPagePCOS: React.FC<SalesPagePCOSProps> = ({ user, onLogin, onPurchase, onSwitchToLogin, price = 4900 }) => {
     return (
         <div className="min-h-screen bg-rose-50/50 font-sans text-stone-900 font-['Outfit'] pb-20">
             <nav className="py-6 container mx-auto px-6 flex justify-between items-center">
@@ -23,7 +24,7 @@ const SalesPagePCOS: React.FC<SalesPagePCOSProps> = ({ user, onLogin, onPurchase
                     <span className="font-serif font-bold text-xl tracking-wide text-stone-800">Zenith<span className="text-rose-400">Care</span></span>
                 </div>
                 {!user && (
-                    <button onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })} className="hidden md:block font-bold text-rose-500 hover:text-rose-600 transition-colors">
+                    <button onClick={onSwitchToLogin} className="hidden md:block font-bold text-rose-500 hover:text-rose-600 transition-colors">
                         Member Login
                     </button>
                 )}
@@ -119,6 +120,22 @@ const SalesPagePCOS: React.FC<SalesPagePCOSProps> = ({ user, onLogin, onPurchase
                     </div>
                 </div>
             </section>
+
+            {/* Sticky Mobile CTA */}
+            {!user && (
+                <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 shadow-2xl md:hidden p-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                            <button
+                                onClick={onPurchase}
+                                className="w-full bg-rose-500 text-white py-3 px-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-rose-400 transition-all shadow-lg"
+                            >
+                                Begin My Healing Journey
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

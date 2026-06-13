@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../../types';
+import { track } from '../../src/analytics';
 
 interface QuizFunnelProps {
     onComplete?: (result: QuizResult, email: string) => void;
@@ -191,6 +192,18 @@ const QuizFunnel: React.FC<QuizFunnelProps> = ({ onComplete, onLogin }) => {
     const [name, setName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showExitPopup, setShowExitPopup] = useState(false);
+    const [todayQuizCompletions, setTodayQuizCompletions] = useState<number | null>(null);
+
+    useEffect(() => {
+        fetch('/api/stats')
+            .then(res => res.json())
+            .then(data => {
+                if (data.today_quiz_completions && data.today_quiz_completions > 0) {
+                    setTodayQuizCompletions(data.today_quiz_completions);
+                }
+            })
+            .catch(() => {});
+    }, []);
 
     const totalQuestions = questions.length;
     const progress = currentStep === 0 ? 0 : Math.min((currentStep / totalQuestions) * 100, 100);
@@ -314,11 +327,13 @@ const QuizFunnel: React.FC<QuizFunnelProps> = ({ onComplete, onLogin }) => {
             });
 
             if (response.ok) {
+                track('quiz_completed', { quiz_result: result!.primaryRecommendation, email_provided: !!email });
                 onComplete?.(result!, email);
                 setCurrentStep(13); // Success state
             }
         } catch {
             // Still proceed even if API fails
+            track('quiz_completed', { quiz_result: result!.primaryRecommendation, email_provided: !!email });
             onComplete?.(result!, email);
             setCurrentStep(13);
         } finally {
@@ -341,7 +356,9 @@ const QuizFunnel: React.FC<QuizFunnelProps> = ({ onComplete, onLogin }) => {
                         {/* Badge */}
                         <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-8 animate-bounce">
                             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                            2,847 women took this quiz today
+                            {todayQuizCompletions !== null
+                                ? `${todayQuizCompletions.toLocaleString()} women took this quiz today`
+                                : 'Real women, real results'}
                         </div>
 
                         {/* Headline */}
@@ -369,17 +386,23 @@ const QuizFunnel: React.FC<QuizFunnelProps> = ({ onComplete, onLogin }) => {
 
                         {/* Trust badges */}
                         <div className="mt-16 flex flex-wrap justify-center gap-8 opacity-60">
-                            <div className="text-center">
-                                <div className="text-3xl font-black">15,000+</div>
-                                <div className="text-xs uppercase tracking-wider">Women helped</div>
+                            <div className="flex items-center gap-2">
+                                <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-xs font-medium uppercase tracking-wider">Science-backed protocols</span>
                             </div>
-                            <div className="text-center">
-                                <div className="text-3xl font-black">4.9/5</div>
-                                <div className="text-xs uppercase tracking-wider">Average rating</div>
+                            <div className="flex items-center gap-2">
+                                <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-xs font-medium uppercase tracking-wider">Expert-led programs</span>
                             </div>
-                            <div className="text-center">
-                                <div className="text-3xl font-black">87%</div>
-                                <div className="text-xs uppercase tracking-wider">See results in 21 days</div>
+                            <div className="flex items-center gap-2">
+                                <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-xs font-medium uppercase tracking-wider">Personalized for you</span>
                             </div>
                         </div>
                     </div>

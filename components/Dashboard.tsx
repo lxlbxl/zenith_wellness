@@ -60,7 +60,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, stats, onMoodCheckIn, onUpd
   const userId = user.id;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tempGoals, setTempGoals] = useState<DailyGoals>(stats.goals);
-  const [timeLeft, setTimeLeft] = useState({ days: 12, hours: 4, mins: 33, secs: 11 });
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
   const [cycleStats, setCycleStats] = useState<CycleStats | null>(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [checkedItems, setCheckedItems] = useState<boolean[]>([true, false, false, true]);
@@ -77,9 +77,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, stats, onMoodCheckIn, onUpd
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [activeEnrollment, setActiveEnrollment] = useState<any>(null);
   const [enrollmentLoading, setEnrollmentLoading] = useState(true);
+  const [totalEnrolledUsers, setTotalEnrolledUsers] = useState<number | null>(null);
 
-  // Simple countdown effect simulation
-  // Check enrollment first (fast, no AI tokens)
+  // Compute countdown from enrollment start_date
   useEffect(() => {
     const checkEnrollment = async () => {
       try {
@@ -165,19 +165,38 @@ const Dashboard: React.FC<DashboardProps> = ({ user, stats, onMoodCheckIn, onUpd
     loadData();
   }, [enrollmentLoading, activeEnrollment, stats.persona, userId]);
 
-  // Countdown timer
+  // Fetch total enrolled users for social proof
   useEffect(() => {
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(data => {
+        if (data.total_enrolled_users && data.total_enrolled_users > 0) {
+          setTotalEnrolledUsers(data.total_enrolled_users);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Real countdown timer from enrollment start_date
+  useEffect(() => {
+    if (!activeEnrollment?.start_date) return;
+    const targetDate = new Date(activeEnrollment.start_date);
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.secs > 0) return { ...prev, secs: prev.secs - 1 };
-        if (prev.mins > 0) return { ...prev, mins: prev.mins - 1, secs: 59 };
-        if (prev.hours > 0) return { ...prev, hours: prev.hours - 1, mins: 59, secs: 59 };
-        if (prev.days > 0) return { ...prev, days: prev.days - 1, hours: 23, mins: 59, secs: 59 };
-        return prev;
-      });
+      const now = new Date();
+      const diff = targetDate.getTime() - now.getTime();
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, mins: 0, secs: 0 });
+        clearInterval(timer);
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+      setTimeLeft({ days, hours, mins, secs });
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [activeEnrollment?.start_date]);
 
   const moodEmojis: Record<Mood, string> = {
     ecstatic: '🤩', happy: '😊', neutral: '😐', tired: '😫', stressed: '😰', down: '😔'
@@ -265,7 +284,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, stats, onMoodCheckIn, onUpd
               <i className="fa-solid fa-rocket"></i>
             </div>
             <h2 className="text-2xl font-black text-slate-900 mb-4">Start Your {featuredTitle}</h2>
-            <p className="text-slate-500 mb-8 leading-relaxed">{featuredCohort?.description || 'Join 2,400+ members in the next cohort. Get a personalized protocol and 1-on-1 Intelligent accountability.'}</p>
+            <p className="text-slate-500 mb-8 leading-relaxed">{featuredCohort?.description || `${totalEnrolledUsers ? `Join ${totalEnrolledUsers.toLocaleString()}+ members` : 'Join thousands of members'} in the next cohort. Get a personalized protocol and 1-on-1 Intelligent accountability.`}</p>
             <button
               onClick={() => featuredCohort && onOpenPayment?.(featuredCohort)}
               className="bg-indigo-600 text-white py-4 px-8 rounded-2xl font-black shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all w-fit"
@@ -347,7 +366,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, stats, onMoodCheckIn, onUpd
           </div>
           <div className="bg-white px-8 py-5 rounded-[2rem] border border-slate-100 shadow-xl shadow-indigo-100/10 flex flex-col items-center">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cohort Starts In</p>
-            <CountdownTimer targetDate={new Date(new Date().getTime() + timeLeft.days * 86400000 + timeLeft.hours * 3600000)} size="lg" variant="banner" />
+            <CountdownTimer targetDate={new Date(activeEnrollment.start_date)} size="lg" variant="banner" />
           </div>
         </header>
 
@@ -355,7 +374,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, stats, onMoodCheckIn, onUpd
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-indigo-600 p-10 rounded-[3rem] text-white shadow-2xl shadow-indigo-200">
               <h2 className="text-3xl font-black mb-4">Step 1: Metabolic Priming</h2>
-              <p className="text-indigo-100 mb-8 leading-relaxed max-w-xl">We start the Metabolic Reset in {timeLeft.days} days. This week's goal is to audit your pantry and remove inflammatory triggers. Your Smart Coach is available for specific food questions.</p>
+              <p className="text-indigo-100 mb-8 leading-relaxed max-w-xl">We start the Metabolic Reset in {timeLeft.days > 0 ? `${timeLeft.days} days` : 'less than a day'}. This week's goal is to audit your pantry and remove inflammatory triggers. Your Smart Coach is available for specific food questions.</p>
               <div className="flex flex-wrap gap-4">
                 <button
                   onClick={async () => {

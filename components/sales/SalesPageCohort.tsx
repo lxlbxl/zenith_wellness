@@ -98,6 +98,20 @@ const SalesPageCohort: React.FC<SalesPageCohortProps> = ({ onLogin, onSwitchToLo
                     </div>
                 </div>
             </main>
+
+            {/* Sticky Mobile CTA */}
+            <div className="fixed bottom-0 left-0 right-0 z-50 bg-slate-900 border-t border-white/10 shadow-2xl md:hidden p-4">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                        <button
+                            onClick={() => document.querySelector('main')?.scrollIntoView({ behavior: 'smooth' })}
+                            className="w-full bg-yellow-500 text-black py-3 px-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-yellow-400 transition-all shadow-lg"
+                        >
+                            Join The Squad
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
