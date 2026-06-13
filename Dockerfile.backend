@@ -1,0 +1,45 @@
+FROM php:8.3-fpm
+
+# Install nginx and PHP extensions
+RUN apt-get update && apt-get install -y \
+    nginx \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    && docker-php-ext-install pdo_mysql mbstring zip gd \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copy API code
+COPY api /app/api
+
+# Copy nginx backend config (overwrites default)
+COPY deploy/nginx-backend.conf /etc/nginx/sites-enabled/default
+
+# Install PHP dependencies
+WORKDIR /app/api
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Create required directories
+RUN mkdir -p /app/logs /app/exports \
+    && chmod -R 755 /app/logs /app/exports
+
+# PHP-FPM config - listen on TCP
+RUN sed -i 's/ listen = \/run\/php\/php8.3-fpm.sock/ listen = 9000/' /usr/local/etc/php-fpm.d/zz-docker.conf \
+    && echo "listen = 9000" > /usr/local/etc/php-fpm.d/zz-docker.conf
+
+# Redirect nginx logs to stdout/stderr
+RUN ln -sf /dev/stdout /var/log/nginx/access.log \
+    && ln -sf /dev/stderr /var/log/nginx/error.log
+
+EXPOSE 80
+
+# Start PHP-FPM and nginx
+CMD php-fpm -D && nginx -g "daemon off;"

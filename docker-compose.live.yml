@@ -1,0 +1,81 @@
+services:
+  zenith-mysql:
+    image: mysql:8.0
+    container_name: zenith-mysql-live
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-zenith_live_root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-zenith_wellness}
+      MYSQL_USER: ${MYSQL_USER:-zenith}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-zenith_live_pass}
+    volumes:
+      - zenith_mysql_live_data:/var/lib/mysql
+    networks:
+      - zenith-live-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zenith-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: zenith-wellness-backend:live
+    container_name: zenith-backend-live
+    restart: unless-stopped
+    depends_on:
+      zenith-mysql:
+        condition: service_healthy
+    environment:
+      APP_ENV: production
+      APP_URL: ${APP_URL:-https://zenithwellness.club}
+      APP_DEBUG: "false"
+      PRODUCTION: "true"
+      DB_HOST: zenith-mysql
+      DB_NAME: ${MYSQL_DATABASE:-zenith_wellness}
+      DB_USER: ${MYSQL_USER:-zenith}
+      DB_PASS: ${MYSQL_PASSWORD:-zenith_live_pass}
+      JWT_SECRET: ${JWT_SECRET:-live-jwt-secret-change-me}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-live-enc-key-change-me}
+      ACTIVE_PAYMENT_GATEWAY: ${ACTIVE_PAYMENT_GATEWAY:-stripe}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://zenithwellness.club,https://www.zenithwellness.club}
+      SALES_ENABLED: "false"
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+    networks:
+      - zenith-live-network
+
+  zenith-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    image: zenith-wellness-frontend:live
+    container_name: zenith-frontend-live
+    restart: unless-stopped
+    depends_on:
+      - zenith-backend
+    networks:
+      - zenith-live-network
+      - coolify
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.zenith-live.rule=Host(`zenithwellness.club`) || Host(`www.zenithwellness.club`)"
+      - "traefik.http.routers.zenith-live.entrypoints=https"
+      - "traefik.http.routers.zenith-live.tls=true"
+      - "traefik.http.routers.zenith-live.tls.certresolver=letsencrypt"
+      - "traefik.http.services.zenith-live.loadbalancer.server.port=80"
+      - "traefik.http.routers.zenith-live-http.rule=Host(`zenithwellness.club`) || Host(`www.zenithwellness.club`)"
+      - "traefik.http.routers.zenith-live-http.entrypoints=http"
+      - "traefik.http.routers.zenith-live-http.middlewares=zenith-live-https-redirect"
+      - "traefik.http.middlewares.zenith-live-https-redirect.redirectscheme.scheme=https"
+
+networks:
+  zenith-live-network:
+    driver: bridge
+  coolify:
+    external: true
+
+volumes:
+  zenith_mysql_live_data:
