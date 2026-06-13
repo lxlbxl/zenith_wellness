@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../services/NotificationService.php';
 
 class HabitController
@@ -27,18 +28,13 @@ class HabitController
         }
 
         $token = substr($authHeader, 7);
-
-        try {
-            $payload = json_decode(base64_decode(explode('.', $token)[1]), true);
-            if ($payload) {
-                // Check for 'data' wrapper (AuthController format) or direct 'id'
-                $userId = $payload['data']['id'] ?? $payload['id'] ?? null;
-                if ($userId) {
-                    return ['id' => $userId, 'email' => $payload['data']['email'] ?? $payload['email'] ?? null];
-                }
+        $payload = AuthMiddleware::verifyToken($token);
+        if ($payload) {
+            // Check for 'data' wrapper (AuthController format) or direct 'id'
+            $userId = $payload['data']['id'] ?? $payload['id'] ?? null;
+            if ($userId) {
+                return ['id' => $userId, 'email' => $payload['data']['email'] ?? $payload['email'] ?? null];
             }
-        } catch (Exception $e) {
-            return null;
         }
 
         return null;

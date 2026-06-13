@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
+
 class ContentController
 {
     private $db;
@@ -48,32 +50,12 @@ class ContentController
             return false;
         }
 
-        $token_parts = explode('.', $matches[1]);
-        if (count($token_parts) !== 3) {
+        $payload = AuthMiddleware::verifyToken($matches[1]);
+        if (!$payload)
             return false;
-        }
 
-        try {
-            $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $token_parts[1])), true);
-            if (!$payload)
-                return false;
-
-            if (isset($payload['exp']) && $payload['exp'] < time()) {
-                return false;
-            }
-
-            $userId = $payload['data']['id'] ?? $payload['id'] ?? null;
-            if (!$userId)
-                return false;
-
-            $stmt = $this->db->prepare("SELECT role FROM users WHERE id = :id");
-            $stmt->execute([':id' => $userId]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            return ($user && $user['role'] === 'admin');
-        } catch (Exception $e) {
-            return false;
-        }
+        $role = $payload['role'] ?? $payload['data']['role'] ?? '';
+        return $role === 'admin' ? $payload : false;
     }
 
     private function deleteCohort($id)

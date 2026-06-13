@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/AIController.php';
 
 class MealController

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../services/NotificationService.php';
 
 class GoalsController
@@ -25,13 +26,9 @@ class GoalsController
 
         $token = substr($authHeader, 7);
 
-        try {
-            $payload = json_decode(base64_decode(explode('.', $token)[1]), true);
-            if ($payload && isset($payload['id'])) {
-                return $payload;
-            }
-        } catch (Exception $e) {
-            return null;
+        $payload = AuthMiddleware::verifyToken($token);
+        if ($payload) {
+            return $payload;
         }
 
         return null;

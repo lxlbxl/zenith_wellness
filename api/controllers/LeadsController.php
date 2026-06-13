@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
+
 class LeadsController
 {
     private $db;
@@ -19,8 +21,17 @@ class LeadsController
         }
 
         // Admin only for the rest
-        if (!$this->verifyAdmin()) {
+        $headers = getallheaders();
+        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        if (!preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
             http_response_code(403);
+            echo json_encode(['error' => 'Unauthorized']);
+            return;
+        }
+        $payload = AuthMiddleware::verifyToken($matches[1]);
+        if (!$payload || ($payload['role'] ?? '') !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['error' => 'Forbidden']);
             return;
         }
 
@@ -28,43 +39,6 @@ class LeadsController
             $this->getLeads();
         } elseif ($action === 'status' && $method === 'POST') {
             $this->updateStatus();
-        }
-    }
-
-    private function verifyAdmin()
-    {
-        $headers = getallheaders();
-        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-
-        if (!preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-            return false;
-        }
-
-        $token_parts = explode('.', $matches[1]);
-        if (count($token_parts) !== 3) {
-            return false;
-        }
-
-        try {
-            $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $token_parts[1])), true);
-            if (!$payload)
-                return false;
-
-            if (isset($payload['exp']) && $payload['exp'] < time()) {
-                return false;
-            }
-
-            $userId = $payload['data']['id'] ?? $payload['id'] ?? null;
-            if (!$userId)
-                return false;
-
-            $stmt = $this->db->prepare("SELECT role FROM users WHERE id = :id");
-            $stmt->execute([':id' => $userId]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            return ($user && $user['role'] === 'admin');
-        } catch (Exception $e) {
-            return false;
         }
     }
 

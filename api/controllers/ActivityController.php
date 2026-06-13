@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 
 class ActivityController
 {
@@ -17,9 +18,8 @@ class ActivityController
         $headers = getallheaders();
         $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
         if (preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-            $token_parts = explode('.', $matches[1]);
-            if (count($token_parts) === 3) {
-                $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $token_parts[1])), true);
+            $payload = AuthMiddleware::verifyToken($matches[1]);
+            if ($payload) {
                 $this->currentUser = $payload['data']['id'] ?? $payload['id'] ?? null;
                 $this->userRole = $payload['data']['role'] ?? $payload['role'] ?? 'user';
                 return;

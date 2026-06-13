@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/AIController.php';
 require_once __DIR__ . '/../services/FXRateService.php';
 

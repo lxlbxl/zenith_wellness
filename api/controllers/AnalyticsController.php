@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 
 class AnalyticsController
 {
@@ -45,13 +46,8 @@ class AnalyticsController
             return false;
         }
 
-        $parts = explode('.', $matches[1]);
-        if (count($parts) < 2) {
-            return false;
-        }
-
-        $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
-        if (($payload['role'] ?? '') !== 'admin') {
+        $payload = AuthMiddleware::verifyToken($matches[1]);
+        if (!$payload || ($payload['role'] ?? '') !== 'admin') {
             return false;
         }
 

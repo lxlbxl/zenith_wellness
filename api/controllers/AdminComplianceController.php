@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../services/NotificationService.php';
 require_once __DIR__ . '/../services/EmailService.php';
 require_once __DIR__ . '/PrivacyController.php';
@@ -49,10 +50,10 @@ class AdminComplianceController
         $authHeader = $headers['Authorization'] ?? '';
         if (!preg_match('/Bearer\s(\S+)/', $authHeader, $matches))
             return false;
-        $parts = explode('.', $matches[1]);
-        if (count($parts) < 2)
+
+        $payload = AuthMiddleware::verifyToken($matches[1]);
+        if (!$payload)
             return false;
-        $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
 
         // Handle nested payload structure
         $role = $payload['role'] ?? $payload['data']['role'] ?? '';

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../config.php';
 
 class NotificationController
@@ -47,7 +48,8 @@ class NotificationController
         $parts = explode('.', $matches[1]);
         if (count($parts) < 2)
             return false;
-        return json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
+        $payload = AuthMiddleware::verifyToken($token);
+        return $payload;
     }
 
     private function getUnread()

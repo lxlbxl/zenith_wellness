@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../services/NotificationService.php';
 
 class CycleController
@@ -25,14 +26,9 @@ class CycleController
         }
 
         $token = substr($authHeader, 7);
-
-        try {
-            $payload = json_decode(base64_decode(explode('.', $token)[1]), true);
-            if ($payload) {
-                return $payload['data'] ?? $payload;
-            }
-        } catch (Exception $e) {
-            return null;
+        $payload = AuthMiddleware::verifyToken($token);
+        if ($payload) {
+            return $payload['data'] ?? $payload;
         }
 
         return null;
